@@ -1,10 +1,10 @@
-const UserModel = require("../model/UserModel")
+const UserModel = require("../models/UserModel")
 const bcryptjs = require('bcryptjs')
 
 async function registerUser(request, response) {
     try{
-        const {name, email, password, profile_pic} = request.body
-
+        const {name, email, profile_pic, password} = request.body
+        //console.log(name, email, profile_pic, password)
         const checkEmail = await UserModel.findOne({email})
         if(checkEmail){
             return response.status(400).json({
@@ -18,8 +18,8 @@ async function registerUser(request, response) {
         const payload = {
             name,
             email,
-            profile_pic,
-            password : hashpassword
+            password : hashpassword,
+            profile_pic
         }
         const user = new UserModel(payload)
         const userSave = await user.save()
