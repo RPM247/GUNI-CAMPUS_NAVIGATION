@@ -1,10 +1,12 @@
+import { Outlet } from 'react-router-dom';
 import './App.css'
+import { useState } from 'react';
 
 function App() {
-
+  const [count, setcount] = useState(0)
   return (
-    <main className='font-bold text-2xl text-yellow-300'>
-      React App
+    <main>
+      <Outlet/>
     </main>
   ); 
 }
