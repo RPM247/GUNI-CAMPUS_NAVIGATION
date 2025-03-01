@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import {IoClose} from "react-icons/io5"
 import { Link } from 'react-router-dom'
 import uploadFile from '../helpers/uploadFile'
+import axios from 'axios'
+import toast from 'react-hot-toast'
 
 const RegisterPage = () => {
   const [data, setData] = useState({
@@ -25,8 +27,13 @@ const RegisterPage = () => {
   const handleUploadPhoto = async(e)=>{
     const file = e.target.files[0]
     const uploadPhoto = await uploadFile(file)
-    console.log("Uploaded photo", uploadPhoto)
     setUploadPhoto(file)
+    setData((preve)=>{
+      return{
+        ...preve,
+        profile_pic : uploadPhoto?.url
+      }
+    })
   }
 
   const handleClearUploadPhoto = (e)=>{
@@ -35,9 +42,17 @@ const RegisterPage = () => {
     setUploadPhoto(null)
   }
 
-  const handleSubmit = (e)=>{
+  const handleSubmit = async(e)=>{
     e.preventDefault()
     e.stopPropagation()
+    const URL = `${import.meta.env.VITE_BACKEND_URL}/api/register`
+    try{
+      const response = await axios.post(URL, data)
+      console.log("response", response)
+      toast.success(response.data.message)
+    }catch(error){ 
+      toast.error(error?.response?.data?.message)
+    }
     console.log("data: ", data)
   }
 
