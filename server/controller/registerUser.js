@@ -10,8 +10,8 @@ async function registerUser(request, response) {
             return response.status(400).json({
                 message : "Already user exists...!",
                 error : true
-            })
-        }
+            }) 
+        } 
 
         const salt = await bcryptjs.genSalt(10)
         const hashpassword = await bcryptjs.hash(password, salt)

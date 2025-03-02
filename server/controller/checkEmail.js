@@ -17,7 +17,7 @@ async function checkEmail(request, response) {
             data : checkEmail
         })
 
-    } catch(error){
+    } catch(error){ 
         return response.status(500).json({
             message : error.message || error,
             error : true
