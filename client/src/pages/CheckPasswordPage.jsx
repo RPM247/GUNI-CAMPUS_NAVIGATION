@@ -6,19 +6,23 @@ import axios from 'axios'
 import toast from 'react-hot-toast'
 import {PiUserCircle} from "react-icons/pi"
 import Avatar from '../components/Avatar'
+import { useDispatch } from 'react-redux'
+import { setToken, setUser } from '../redux/userSlice'
 
 const CheckPasswordPage = () => {
   const [data, setData] = useState({
-    password : ""
+    password : "",
+    userId : ""
   })
   const navigate = useNavigate()
   const location = useLocation()
-  console.log("location: ", location.state)
-  useEffect(()=>{
-    if(!location?.state?.name){
-      navigate('/email')
-    }
-  }, [])
+  const dispatch = useDispatch()
+  
+  // useEffect(()=>{
+  //   if(!location?.state?.name){
+  //     navigate('/email')
+  //   }
+  // }, [])
 
   const handleOnChange = (e)=>{
     const {name, value} = e.target
@@ -34,10 +38,22 @@ const CheckPasswordPage = () => {
     e.preventDefault()
     e.stopPropagation()
     const URL = `${import.meta.env.VITE_BACKEND_URL}/api/password`
+
     try{
-      const response = await axios.post(URL, data)
+      const response = await axios({
+        method : 'post',
+        url : URL,
+        data : {
+          userId : location?.state?._id,
+          password : data.password
+        },
+        withCredentials : true
+      })
       toast.success(response.data.message)
+
       if(response.data.success){
+        dispatch(setToken(response?.data?.token))
+        localStorage.setItem('token', response?.data?.token)
         setData({  
           password : ""
         })
@@ -66,22 +82,22 @@ const CheckPasswordPage = () => {
         <h3>Welcome to GUNI - CAMPUS NAVIGATION</h3>
         <form className='grid gap-4 mt-3' onSubmit={handleSubmit}>
           <div className='flex flex-col gap-1'>
-            <label htmlFor='email'>Email: </label>
+            <label htmlFor='password'>Password: </label>
             <input
-              type='email' 
-              id='email'
-              name='email'
-              placeholder='Enter your email'
+              type='password' 
+              id='password'
+              name='password'
+              placeholder='Enter your password'
               className='bg-slate-100 px-2 py-1 focus:outline-primary'
-              value={data.email}
+              value={data.password}
               onChange={handleOnChange}
               required
             />
           </div>
 
-          <button className='bg-primary text-lg px-4 py-1 hover:bg-secondary rounded mt-2 font-bold text-white leading-relaxed tracking-wide'>Submit</button>
+          <button className='bg-primary text-lg px-4 py-1 hover:bg-secondary rounded mt-2 font-bold text-white leading-relaxed tracking-wide'>Login</button>
         </form>
-        <p className='my-3 text-center'>New user ? <Link to={'/register'} className='hover:text-primary font-semibold'>Register</Link></p>
+        <p className='my-3 text-center'><Link to={'/forgot-password'} className='hover:text-primary font-semibold'>Forgot password ?</Link></p>
       </div>
     </div>
   )
