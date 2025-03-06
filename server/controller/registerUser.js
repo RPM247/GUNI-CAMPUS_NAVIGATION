@@ -1,5 +1,7 @@
 const UserModel = require("../models/UserModel")
 const bcryptjs = require('bcryptjs')
+const nodemailer = require('nodemailer')
+const crypto = require('crypto')
 
 async function registerUser(request, response) {
     try{

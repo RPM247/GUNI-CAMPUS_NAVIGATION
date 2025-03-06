@@ -6,6 +6,7 @@ const userDetails = require('../controller/userDetails')
 const logout = require('../controller/logout')
 const updateUserDetails = require('../controller/updateUserDetails')
 
+
 const router = express.Router()
 
 //for creating user api
@@ -20,5 +21,6 @@ router.get('/user-details', userDetails)
 router.get('/logout', logout)  
 //for updating user details
 router.post('/update-user', updateUserDetails) 
+
 
 module.exports = router
