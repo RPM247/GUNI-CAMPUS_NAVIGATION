@@ -44,8 +44,17 @@ const RegisterPage = () => {
   }
 
   const handleSubmit = async(e)=>{
-    e.preventDefault()
     e.stopPropagation()
+    e.preventDefault()
+    if (data.password.length < 8 || data.password.length > 10 ) {
+      toast.error("Password must be at least 8 and Atmost 10 Character Long");
+      return;
+    }
+    const regex = /^(?=.*[0-9])(?=.*[!@#$%^&*])/;
+    if (!regex.test(data.password)) {
+      toast.error("Password must contain at least one number and one special character");
+      return;
+    }
     const URL = `${import.meta.env.VITE_BACKEND_URL}/api/register`
     try{
       const response = await axios.post(URL, data)

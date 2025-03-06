@@ -35,9 +35,8 @@ const Home = () => {
   }, [])
 
   return (
-    <div>
-      Home
-      {/**message component **/}
+    <div className="min-h-screen flex flex-col">
+      home
       <section>
           <Outlet/>
       </section>
