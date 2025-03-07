@@ -17,7 +17,10 @@ const userSchema = new mongoose.Schema({
     profile_pic : {
         type : String,
         default : ""
-    }
+    },
+    isVerified: { type: Boolean, default: false },  // NEW FIELD to check email verification
+    otp: { type: String, default: null }, // NEW FIELD for storing OTP
+    otpExpires: { type: Date, default: null },
 }, {
     timestamps : true
 })

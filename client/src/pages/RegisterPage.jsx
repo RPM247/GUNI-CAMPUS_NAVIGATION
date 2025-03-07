@@ -61,13 +61,7 @@ const RegisterPage = () => {
       console.log("response", response)
       toast.success(response.data.message)
       if(response.data.success){
-        setData({   
-          name : "",
-          email : "",
-          password : "",
-          profile_pic : ""
-        })
-        navigate('/email')
+        navigate('/verify-otp', { state: { email: data.email } });
       }
     }catch(error){ 
       toast.error(error?.response?.data?.message)

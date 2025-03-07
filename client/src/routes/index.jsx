@@ -7,6 +7,7 @@ import MessagePage from "../components/MessagePage";
 import App from "../App";
 import AuthLayouts from "../layout";
 import ForgotPassword from "../pages/ForgotPassword";
+import VerifyOTP from "../pages/VerifyOTP";
 
 const router = createBrowserRouter([
     {
@@ -16,6 +17,10 @@ const router = createBrowserRouter([
             {
                 path : "register",
                 element : <AuthLayouts><RegisterPage/></AuthLayouts>
+            },
+            {
+                path: "verify-otp",  // ✅ New route for OTP verification
+                element: <AuthLayouts><VerifyOTP /></AuthLayouts>
             },
             {
                 path : "email",
