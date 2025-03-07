@@ -66,7 +66,7 @@ const RegisterPage = () => {
     }catch(error){ 
       toast.error(error?.response?.data?.message)
     }
-    console.log("data: ", data)
+    console.log("upload ", uploadPhoto)
   }
 
   return (

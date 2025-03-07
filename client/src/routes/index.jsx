@@ -8,12 +8,18 @@ import App from "../App";
 import AuthLayouts from "../layout";
 import ForgotPassword from "../pages/ForgotPassword";
 import VerifyOTP from "../pages/VerifyOTP";
+import LandingPage from "../pages/LandingPage";
 
 const router = createBrowserRouter([
     {
         path : "/",
         element : <App/>,
         children : [
+            {
+                path : "/",
+                element : <LandingPage/>
+
+            },
             {
                 path : "register",
                 element : <AuthLayouts><RegisterPage/></AuthLayouts>
@@ -35,7 +41,7 @@ const router = createBrowserRouter([
                 element : <AuthLayouts><ForgotPassword/></AuthLayouts>
             },
             {
-                path : "",
+                path : "home",
                 element : <AuthLayouts><Home/></AuthLayouts>,
                 children : [
                     {
@@ -43,7 +49,8 @@ const router = createBrowserRouter([
                         element : <MessagePage/>
                     }
                 ]
-            }
+            },
+           
         ]
     }
 ])

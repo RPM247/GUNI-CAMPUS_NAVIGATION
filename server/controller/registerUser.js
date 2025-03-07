@@ -47,7 +47,7 @@ async function registerUser(request, response) {
             from: process.env.EMAIL,
             to: email,
             subject: "Verify Your Email - OTP",
-            text: `Your OTP for email verification is: ${otp}. It will expire in 10 minutes.`
+            text: `Your OTP for email verification is: ${otp}. It will expire in 10 minutes. Have fun while exploring our campus...!!! `
         })
 
         return response.status(201).json({

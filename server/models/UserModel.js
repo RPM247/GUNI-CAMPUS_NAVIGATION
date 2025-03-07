@@ -21,6 +21,9 @@ const userSchema = new mongoose.Schema({
     isVerified: { type: Boolean, default: false },  // NEW FIELD to check email verification
     otp: { type: String, default: null }, // NEW FIELD for storing OTP
     otpExpires: { type: Date, default: null },
+    resetPasswordOtp: { type: String }, // New field for password reset OTP
+    resetPasswordOtpExpires: { type: Date },
+    isResetPasswordVerified: { type: Boolean, default: false }
 }, {
     timestamps : true
 })

@@ -35,10 +35,17 @@ const Home = () => {
     fetchUserDetails()
   }, [])
 
-  const handleLogout = ()=>{
+  const handleLogout = async()=>{
+    const URL = `${import.meta.env.VITE_BACKEND_URL}/api/logout`
+      const response = await axios({
+        url : URL,
+        //withCredentials : true
+      }) 
     dispatch(logout())
     navigate("/email")
     localStorage.clear()
+
+    
   }
 
   return (

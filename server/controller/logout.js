@@ -1,5 +1,7 @@
 async function logout(request, response){
+
     try{
+        console.log("function is called")
         const cookieOptions = {
             http : true,
             secure : true
