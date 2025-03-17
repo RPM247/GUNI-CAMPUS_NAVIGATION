@@ -6,8 +6,8 @@ const ForgotPassword = () => {
     const [email, setEmail] = useState("");
     const [otp, setOtp] = useState("");
     const [newPassword, setNewPassword] = useState("");
-    const [step, setStep] = useState(1); // 1: Enter Email, 2: Enter OTP, 3: Reset Password
-    const [isResetPasswordVerified, setIsResetPasswordVerified] = useState(false); // Track OTP verification
+    const [step, setStep] = useState(1);
+    const [isResetPasswordVerified, setIsResetPasswordVerified] = useState(false); 
 
     const handleSendOTP = async (e) => {
         e.preventDefault();
@@ -25,7 +25,7 @@ const ForgotPassword = () => {
         try {
             const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/verify`, { email, otp });
             toast.success(response.data.message);
-            setIsResetPasswordVerified(true); // ✅ Mark OTP as verified
+            setIsResetPasswordVerified(true);
             setStep(3);
         } catch (error) {
             toast.error(error.response?.data?.message || "Invalid OTP");
@@ -42,7 +42,7 @@ const ForgotPassword = () => {
         try {
             const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/reset-password`, { email, otp, newPassword });
             toast.success(response.data.message);
-            window.location.href = "/email"; // Redirect after success
+            window.location.href = "/email"; 
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to reset password");
         }
