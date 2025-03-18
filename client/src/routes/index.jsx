@@ -9,6 +9,8 @@ import AuthLayouts from "../layout";
 import ForgotPassword from "../pages/ForgotPassword";
 import VerifyOTP from "../pages/VerifyOTP";
 import LandingPage from "../pages/LandingPage";
+import Places from "../pages/Places";
+import PlaceList from "../pages/PlaceList";
 
 const router = createBrowserRouter([
     {
@@ -25,7 +27,7 @@ const router = createBrowserRouter([
                 element : <AuthLayouts><RegisterPage/></AuthLayouts>
             },
             {
-                path: "verify-otp",  // ✅ New route for OTP verification
+                path: "verify-otp", 
                 element: <AuthLayouts><VerifyOTP /></AuthLayouts>
             },
             {
@@ -39,6 +41,14 @@ const router = createBrowserRouter([
             {
                 path : "forgot-password",
                 element : <AuthLayouts><ForgotPassword/></AuthLayouts>
+            },
+            {
+                path : "places",
+                element : <AuthLayouts><Places/></AuthLayouts>
+            },
+            {
+                path : "places/:categories",
+                element : <AuthLayouts><PlaceList/></AuthLayouts>
             },
             {
                 path : "home",

@@ -12,6 +12,7 @@ const LandingPage = () => {
     const navigate = useNavigate();
     const signUp = () => navigate("/register");
     const login = () => navigate("/email");
+    const places = () => navigate("/places");
 
     const slides = [
         { image: universityOffice, title: "University Office", description: "The heart of our campus, where all the administrative offices are located." },
@@ -58,7 +59,7 @@ const LandingPage = () => {
                 <h2 className="text-4xl font-bold mb-4">Welcome to our Campus!</h2>
                 <p className="text-lg mb-6">Explore our university campus and discover all the amazing places it has to offer.</p>
                 <div className="flex justify-center">
-                    <button onClick={signUp} className="bg-slate-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-slate-600 flex items-center">
+                    <button onClick={places} className="bg-slate-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-slate-600 flex items-center">
                         Start Exploring <span className="ml-2"><BiSolidRightArrowCircle/></span>
                     </button>
                 </div>
