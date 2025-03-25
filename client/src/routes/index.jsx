@@ -11,6 +11,7 @@ import VerifyOTP from "../pages/VerifyOTP";
 import LandingPage from "../pages/LandingPage";
 import Places from "../pages/Places";
 import PlaceList from "../pages/PlaceList";
+import Admin from "../pages/Admin";
 
 const router = createBrowserRouter([
     {
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
             {
                 path : "places/:categories",
                 element : <AuthLayouts><PlaceList/></AuthLayouts>
+            },
+            {
+                path : "admin",
+                element : <AuthLayouts><Admin/></AuthLayouts>
             },
             {
                 path : "home",

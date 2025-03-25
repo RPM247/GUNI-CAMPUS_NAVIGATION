@@ -28,7 +28,8 @@ async function registerUser(request, response) {
             profile_pic,
             otp,
             otpExpires,
-            isVerified : false
+            isVerified : false,
+            isAdmin: false,
         }
         const user = new UserModel(payload)
         const userSave = await user.save()

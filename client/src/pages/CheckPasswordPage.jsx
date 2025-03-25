@@ -14,6 +14,7 @@ const CheckPasswordPage = () => {
     password : "",
     userId : ""
   })
+
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch = useDispatch()
@@ -51,13 +52,26 @@ const CheckPasswordPage = () => {
       })
       toast.success(response.data.message)
 
-      if(response.data.success){
-        dispatch(setToken(response?.data?.token))
-        localStorage.setItem('token', response?.data?.token)
-        setData({  
-          password : ""
-        })
-        navigate('/home')
+      if (response.data.success) {
+        const { token, user } = response.data;
+        
+        // Save user details in local storage
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+
+        // Dispatch token to Redux
+        dispatch(setToken(token));
+        dispatch(setUser(user));
+
+        // Reset password field
+        setData({ password: "" });
+
+        // Redirect based on user role
+        if (user.isAdmin) {
+          navigate('/admin');
+        } else {
+          navigate('/home');
+        }
       }
     }catch(error){ 
       toast.error(error?.response?.data?.message)
