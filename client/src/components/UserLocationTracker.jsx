@@ -3,24 +3,38 @@ import MapComponent from "./MapComponent";
 
 const UserLocationTracker = () => {
   const [userLocation, setUserLocation] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if ("geolocation" in navigator) {
-      navigator.geolocation.watchPosition(
+      const watchId = navigator.geolocation.watchPosition(
         (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude]);
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
         },
-        (error) => {
-          console.error("Error getting user location:", error);
+        (err) => {
+          console.error("Error getting user location:", err);
+          setError("Unable to retrieve your location.");
         },
-        { enableHighAccuracy: true }
+        {
+          enableHighAccuracy: true, // Uses GPS for higher accuracy
+          timeout: 10000, // Wait up to 10 seconds for a response
+          maximumAge: 0, // Prevent cached data
+        }
       );
+
+      return () => navigator.geolocation.clearWatch(watchId); // Clean up watcher on unmount
+    } else {
+      setError("Geolocation is not supported by your browser.");
     }
   }, []);
 
   return (
     <div>
       <h2>User Live Location</h2>
+      {error && <p className="text-red-500">{error}</p>}
       {userLocation ? <MapComponent userLocation={userLocation} /> : <p>Fetching location...</p>}
     </div>
   );

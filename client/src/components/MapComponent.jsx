@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import axios from "axios";
 
-const DEFAULT_LOCATION = { lat: 23.241999, lng: 72.528351 }; // GUNI Coordinates
-const ZOOM_LEVEL = 18; 
+const DEFAULT_LOCATION = { lat: 23.530215, lng: 72.458111 }; // GUNI Coordinates
+const ZOOM_LEVEL = 18;
 
 // Custom Icons
 const userIcon = new L.Icon({
@@ -18,15 +18,14 @@ const destinationIcon = new L.Icon({
   iconSize: [40, 40],
 });
 
-// Component to set destination by clicking on the map
-const DestinationMarker = ({ setDestination }) => {
-  useMapEvents({
-    click(e) {
-      setDestination(e.latlng);
-    },
-  });
-  return null;
-};
+// Predefined campus locations
+const locations = [
+  { name: "Library", lat: 23.527717, lng: 72.459251 },
+  { name: "UVPCE Main Building", lat: 23.528454, lng: 72.458596 },
+  { name: "UVPCE New Building", lat: 23.527146, lng: 72.458896 },
+  { name: "Sports Complex", lat: 23.525531, lng: 72.456266 },
+  { name: "University Building", lat: 23.529113, lng: 72.455437 },
+];
 
 const FocusMap = ({ position }) => {
   const map = useMap();
@@ -39,56 +38,16 @@ const FocusMap = ({ position }) => {
 };
 
 const MapComponent = () => {
-  const [userLocation, setUserLocation] = useState(DEFAULT_LOCATION);
+  const [startLocation, setStartLocation] = useState(null);
   const [destination, setDestination] = useState(null);
-  const [error, setError] = useState("");
   const [path, setPath] = useState([]);
-  const [mapLoaded, setMapLoaded] = useState(false); // Track if map has loaded once
+  const [distance, setDistance] = useState("N/A");
+  const [error, setError] = useState("");
 
-  // Function to get accurate user location
-  const trackUserLocation = () => {
-    if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser.");
-      return;
-    }
-
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const newLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        setUserLocation(newLocation);
-        setError(""); 
-
-        // Ensure initial focus on user's location when map loads
-        if (!mapLoaded) {
-          setMapLoaded(true);
-        }
-      },
-      (err) => {
-        setError("Unable to retrieve your location. Using default location.");
-        setUserLocation(DEFAULT_LOCATION);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 1000 } 
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  };
-
-  // Start tracking user location on mount
-  useEffect(() => {
-    const stopTracking = trackUserLocation();
-    return () => stopTracking(); // Clean up watchPosition on unmount
-  }, []);
-
-  // Function to fetch shortest path using OpenRouteService API
   const getShortestPath = async () => {
-    if (!destination) return;
-
+    if (!startLocation || !destination) return;
     const apiKey = `${import.meta.env.VITE_ORS_API_KEY}`;
-    const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${userLocation.lng},${userLocation.lat}&end=${destination.lng},${destination.lat}`;
-
+    const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${startLocation.lng},${startLocation.lat}&end=${destination.lng},${destination.lat}`;
     try {
       const response = await axios.get(url);
       const coordinates = response.data.features[0].geometry.coordinates.map((coord) => ({
@@ -96,56 +55,61 @@ const MapComponent = () => {
         lng: coord[0],
       }));
       setPath(coordinates);
+      setDistance((response.data.features[0].properties.segments[0].distance / 1000).toFixed(2) + " km");
     } catch (err) {
       setError("Error fetching shortest path.");
     }
   };
 
-  // Get shortest path when destination is set
   useEffect(() => {
-    if (destination) {
+    if (startLocation && destination) {
       getShortestPath();
     }
-  }, [destination]);
+  }, [startLocation, destination]);
 
   return (
     <div className="h-screen w-full">
       {error && <p className="text-red-500 text-center">{error}</p>}
-      <MapContainer center={userLocation} zoom={ZOOM_LEVEL} className="h-full w-full">
-        {/* Auto-focus on user location */}
-        {mapLoaded && <FocusMap position={userLocation} />}
+      <div className="flex justify-center gap-4">
+        <select onChange={(e) => {
+          const [lat, lng] = e.target.value.split(",").map(parseFloat);
+          setStartLocation({ lat, lng });
+        }}>
+          <option value="">Select Start Location</option>
+          {locations.map((loc, index) => (
+            <option key={index} value={`${loc.lat},${loc.lng}`}>{loc.name}</option>
+          ))}
+        </select>
 
+        <select onChange={(e) => {
+          const [lat, lng] = e.target.value.split(",").map(parseFloat);
+          setDestination({ lat, lng });
+        }}>
+          <option value="">Select Destination</option>
+          {locations.map((loc, index) => (
+            <option key={index} value={`${loc.lat},${loc.lng}`}>{loc.name}</option>
+          ))}
+        </select>
+      </div>
+      
+      <p className="font-bold text-center">Distance: {distance}</p>
+      <MapContainer center={DEFAULT_LOCATION} zoom={ZOOM_LEVEL} className="h-full w-full">
+        <FocusMap position={startLocation || DEFAULT_LOCATION} />
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-
-        {/* User Marker (Draggable to allow manual correction) */}
-        <Marker
-          position={userLocation}
-          icon={userIcon}
-          draggable={true}
-          eventHandlers={{
-            dragend: (e) => {
-              setUserLocation(e.target.getLatLng());
-            },
-          }}
-        >
-          <Popup>Move the marker if location is inaccurate.</Popup>
-        </Marker>
-
-        {/* Destination Marker */}
+        {startLocation && (
+          <Marker position={startLocation} icon={userIcon}>
+            <Popup>Start Location</Popup>
+          </Marker>
+        )}
         {destination && (
           <Marker position={destination} icon={destinationIcon}>
             <Popup>Destination</Popup>
           </Marker>
         )}
-
-        {/* Shortest Path */}
         {path.length > 0 && <Polyline positions={path} color="blue" />}
-
-        {/* Click on map to set destination */}
-        <DestinationMarker setDestination={setDestination} />
       </MapContainer>
     </div>
   );

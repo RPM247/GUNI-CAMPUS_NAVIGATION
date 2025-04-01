@@ -13,8 +13,8 @@ function App() {
       <main>
         <Outlet />
       </main>
-      {/* Add the Map Component here */}
-      <MapComponent />
+  
+      {/* <MapComponent /> */}
     </>
   );
 }
