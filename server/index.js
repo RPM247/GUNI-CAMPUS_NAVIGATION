@@ -25,7 +25,7 @@ app.get('/', (request, response)=>{
 app.use('/api', router) 
 
 connectDB().then(()=>{
-    app.listen(PORT, ()=>{
+    app.listen(PORT, "0.0.0.0", ()=>{
         console.log("Server running at " + PORT)
     })
 })

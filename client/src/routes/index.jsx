@@ -12,6 +12,7 @@ import LandingPage from "../pages/LandingPage";
 import Places from "../pages/Places";
 import PlaceList from "../pages/PlaceList";
 import Admin from "../pages/Admin";
+import Navigation from "../pages/Navigation";
 
 const router = createBrowserRouter([
     {
@@ -54,6 +55,10 @@ const router = createBrowserRouter([
             {
                 path : "admin",
                 element : <AuthLayouts><Admin/></AuthLayouts>
+            },
+            {
+                path : "navigate",
+                element : <Navigation/>
             },
             {
                 path : "home",

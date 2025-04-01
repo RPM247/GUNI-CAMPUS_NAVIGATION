@@ -1,18 +1,22 @@
-import { Outlet } from 'react-router-dom';
-import './App.css'
-import { useState } from 'react';
-import toast, {Toaster} from 'react-hot-toast'
+import { Outlet } from "react-router-dom";
+import "./App.css";
+import { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import MapComponent from "./components/MapComponent"; 
 
 function App() {
-  const [count, setcount] = useState(0)
+  const [count, setCount] = useState(0);
+
   return (
     <>
-      <Toaster/>
+      <Toaster />
       <main>
-        <Outlet/>
+        <Outlet />
       </main>
+      {/* Add the Map Component here */}
+      <MapComponent />
     </>
-  ); 
+  );
 }
 
-export default App
+export default App;
