@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvent } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import axios from "axios";
 
-const DEFAULT_LOCATION = { lat: 23.530215, lng: 72.458111 }; // GUNI Coordinates
 const ZOOM_LEVEL = 18;
 
 // Custom Icons
@@ -37,17 +36,55 @@ const FocusMap = ({ position }) => {
   return null;
 };
 
+const MapClickHandler = ({ setDestination, customLocationEnabled }) => {
+  useMapEvent("click", (e) => {
+    if (customLocationEnabled) {
+      setDestination({ lat: e.latlng.lat, lng: e.latlng.lng });
+    }
+  });
+  return null;
+};
+
 const MapComponent = () => {
-  const [startLocation, setStartLocation] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
   const [destination, setDestination] = useState(null);
   const [path, setPath] = useState([]);
   const [distance, setDistance] = useState("N/A");
   const [error, setError] = useState("");
+  const [customLocationEnabled, setCustomLocationEnabled] = useState(false);
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+
+          navigator.geolocation.watchPosition(
+            (pos) => {
+              setUserLocation({
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+              });
+            },
+            (err) => setError("Error detecting location: " + err.message),
+            { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
+          );
+        },
+        (err) => setError("Error detecting location: " + err.message),
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+      );
+    } else {
+      setError("Geolocation is not supported by your browser.");
+    }
+  }, []);
 
   const getShortestPath = async () => {
-    if (!startLocation || !destination) return;
+    if (!userLocation || !destination) return;
     const apiKey = `${import.meta.env.VITE_ORS_API_KEY}`;
-    const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${startLocation.lng},${startLocation.lat}&end=${destination.lng},${destination.lat}`;
+    const url = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${userLocation.lng},${userLocation.lat}&end=${destination.lng},${destination.lat}`;
     try {
       const response = await axios.get(url);
       const coordinates = response.data.features[0].geometry.coordinates.map((coord) => ({
@@ -62,51 +99,51 @@ const MapComponent = () => {
   };
 
   useEffect(() => {
-    if (startLocation && destination) {
+    if (userLocation && destination) {
       getShortestPath();
     }
-  }, [startLocation, destination]);
+  }, [userLocation, destination]);
 
   return (
     <div className="h-screen w-full">
       {error && <p className="text-red-500 text-center">{error}</p>}
       <div className="flex justify-center gap-4">
-        <select onChange={(e) => {
-          const [lat, lng] = e.target.value.split(",").map(parseFloat);
-          setStartLocation({ lat, lng });
-        }}>
-          <option value="">Select Start Location</option>
-          {locations.map((loc, index) => (
-            <option key={index} value={`${loc.lat},${loc.lng}`}>{loc.name}</option>
-          ))}
-        </select>
-
-        <select onChange={(e) => {
-          const [lat, lng] = e.target.value.split(",").map(parseFloat);
-          setDestination({ lat, lng });
-        }}>
+        <select
+          onChange={(e) => {
+            if (e.target.value === "custom") {
+              setCustomLocationEnabled(true);
+              setDestination(null);
+            } else {
+              const [lat, lng] = e.target.value.split(",").map(parseFloat);
+              setDestination({ lat, lng });
+              setCustomLocationEnabled(false);
+            }
+          }}
+        >
           <option value="">Select Destination</option>
           {locations.map((loc, index) => (
             <option key={index} value={`${loc.lat},${loc.lng}`}>{loc.name}</option>
           ))}
+          <option value="custom">Custom Location</option>
         </select>
       </div>
       
       <p className="font-bold text-center">Distance: {distance}</p>
-      <MapContainer center={DEFAULT_LOCATION} zoom={ZOOM_LEVEL} className="h-full w-full">
-        <FocusMap position={startLocation || DEFAULT_LOCATION} />
+      <MapContainer center={userLocation || { lat: 23.530215, lng: 72.458111 }} zoom={ZOOM_LEVEL} className="h-full w-full">
+        <FocusMap position={userLocation} />
+        <MapClickHandler setDestination={setDestination} customLocationEnabled={customLocationEnabled} />
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {startLocation && (
-          <Marker position={startLocation} icon={userIcon}>
-            <Popup>Start Location</Popup>
+        {userLocation && (
+          <Marker position={userLocation} icon={userIcon}>
+            <Popup>📍 You are here</Popup>
           </Marker>
         )}
         {destination && (
           <Marker position={destination} icon={destinationIcon}>
-            <Popup>Destination</Popup>
+            <Popup>📍 Destination</Popup>
           </Marker>
         )}
         {path.length > 0 && <Polyline positions={path} color="blue" />}
