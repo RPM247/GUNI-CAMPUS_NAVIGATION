@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const PlaceList = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const category = location.state.category;
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,17 +34,29 @@ const PlaceList = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Choose a place to visit</h2>
+      <h2 className="text-2xl font-bold mb-4">Places in {category}</h2>
       <ul className="space-y-4">
         {places.map((place) => (
-          <li key={place._id} className="flex items-center bg-white rounded-lg shadow-md p-4 hover:bg-gray-100 transition cursor-pointer">
-            <img 
-              src={place.imageUrl || "https://via.placeholder.com/80"} 
-              alt={place.name} 
+          <li
+            key={place._id}
+            className="flex items-center bg-white rounded-lg shadow-md p-4 hover:bg-gray-100 transition cursor-pointer"
+          >
+            <img
+              src={place.imageUrl || "https://via.placeholder.com/80"}
+              alt={place.name}
               className="w-16 h-16 rounded-md object-cover"
             />
-            <span className="flex-1 ml-4 font-semibold">{place.name}</span>
-            <button className="text-gray-600">
+            <div className="ml-4">
+              <p className="font-semibold">{place.name}</p>
+            </div>
+            <button
+              className="ml-auto text-gray-600"
+              onClick={() =>
+                navigate("/navigate", {
+                  state: { destination: place.coordinates },
+                })
+              }
+            >
               ➜
             </button>
           </li>

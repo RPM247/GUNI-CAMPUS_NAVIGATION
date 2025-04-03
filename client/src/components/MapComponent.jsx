@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"; 
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvent } from "react-leaflet";
+import { useLocation } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import axios from "axios";
@@ -16,15 +17,6 @@ const destinationIcon = new L.Icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
   iconSize: [40, 40],
 });
-
-// Predefined campus locations
-const locations = [
-  { name: "Library", lat: 23.527717, lng: 72.459251 },
-  { name: "UVPCE Main Building", lat: 23.528454, lng: 72.458596 },
-  { name: "UVPCE New Building", lat: 23.527146, lng: 72.458896 },
-  { name: "Sports Complex", lat: 23.525531, lng: 72.456266 },
-  { name: "University Building", lat: 23.529113, lng: 72.455437 },
-];
 
 const FocusMap = ({ position }) => {
   const map = useMap();
@@ -46,8 +38,9 @@ const MapClickHandler = ({ setDestination, customLocationEnabled }) => {
 };
 
 const MapComponent = () => {
+  const location = useLocation();
   const [userLocation, setUserLocation] = useState(null);
-  const [destination, setDestination] = useState(null);
+  const [destination, setDestination] = useState(location.state?.destination || null);
   const [path, setPath] = useState([]);
   const [distance, setDistance] = useState("N/A");
   const [error, setError] = useState("");
@@ -119,11 +112,9 @@ const MapComponent = () => {
               setCustomLocationEnabled(false);
             }
           }}
+          value={destination ? `${destination.lat},${destination.lng}` : ""}
         >
           <option value="">Select Destination</option>
-          {locations.map((loc, index) => (
-            <option key={index} value={`${loc.lat},${loc.lng}`}>{loc.name}</option>
-          ))}
           <option value="custom">Custom Location</option>
         </select>
       </div>
