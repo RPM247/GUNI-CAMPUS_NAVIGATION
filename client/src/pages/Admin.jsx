@@ -49,6 +49,12 @@ const Admin = () => {
   return (
     <div className="min-h-screen flex flex-col relative">
       admin
+      <button
+        onClick={() => navigate("/admin/add-place")}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        ➕ Add New Place
+      </button>
       <div className="absolute top-4 right-4">
         <button
           title="Logout"

@@ -14,6 +14,7 @@ import PlaceList from "../pages/PlaceList";
 import Admin from "../pages/Admin";
 import Navigation from "../pages/Navigation";
 import Mapbox from "../components/Mapbox";
+import AddPlace from "../pages/AddPlace";
 
 const router = createBrowserRouter([
     {
@@ -64,6 +65,10 @@ const router = createBrowserRouter([
             {
                 path : "mapbox",
                 element : <Mapbox/>
+            },
+            {
+                path : "/admin/add-place",
+                element : <AuthLayouts><AddPlace/></AuthLayouts>
             },
             {
                 path : "home",
