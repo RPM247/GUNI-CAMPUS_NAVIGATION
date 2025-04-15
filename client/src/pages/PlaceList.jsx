@@ -52,7 +52,7 @@ const PlaceList = () => {
             <button
               className="ml-auto text-gray-600"
               onClick={() =>
-                navigate("/navigate", {
+                navigate("/mapbox", {
                   state: { destination: place.coordinates },
                 })
               }

@@ -13,6 +13,7 @@ import Places from "../pages/Places";
 import PlaceList from "../pages/PlaceList";
 import Admin from "../pages/Admin";
 import Navigation from "../pages/Navigation";
+import Mapbox from "../components/Mapbox";
 
 const router = createBrowserRouter([
     {
@@ -59,6 +60,10 @@ const router = createBrowserRouter([
             {
                 path : "navigate",
                 element : <Navigation/>
+            },
+            {
+                path : "mapbox",
+                element : <Mapbox/>
             },
             {
                 path : "home",
