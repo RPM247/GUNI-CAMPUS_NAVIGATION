@@ -17,72 +17,72 @@ import Mapbox from "../components/Mapbox";
 import AddPlace from "../pages/AddPlace";
 
 const router = createBrowserRouter([
-    {
-        path : "/",
-        element : <App/>,
-        children : [
-            {
-                path : "/",
-                element : <LandingPage/>
-
-            },
-            {
-                path : "register",
-                element : <AuthLayouts><RegisterPage/></AuthLayouts>
-            },
-            {
-                path: "verify-otp", 
-                element: <AuthLayouts><VerifyOTP /></AuthLayouts>
-            },
-            {
-                path : "email",
-                element : <AuthLayouts><CheckEmailPage/></AuthLayouts>
-            },
-            {
-                path : "password",
-                element : <AuthLayouts><CheckPasswordPage/></AuthLayouts>
-            },
-            {
-                path : "forgot-password",
-                element : <AuthLayouts><ForgotPassword/></AuthLayouts>
-            },
-            {
-                path : "places",
-                element : <AuthLayouts><Places/></AuthLayouts>
-            },
-            {
-                path : "places/:categories",
-                element : <AuthLayouts><PlaceList/></AuthLayouts>
-            },
-            {
-                path : "admin",
-                element : <AuthLayouts><Admin/></AuthLayouts>
-            },
-            {
-                path : "navigate",
-                element : <Navigation/>
-            },
-            {
-                path : "mapbox",
-                element : <Mapbox/>
-            },
-            {
-                path : "/admin/add-place",
-                element : <AuthLayouts><AddPlace/></AuthLayouts>
-            },
-            {
-                path : "home",
-                element : <AuthLayouts><Home/></AuthLayouts>,
-                children : [
-                    {
-                        path : ":userId",
-                        element : <MessagePage/>
-                    }
-                ]
-            },
-           
+  {
+    path: "/",
+    element: <App />,
+    children: [
+      {
+        path: "/",
+        element: <LandingPage />,
+      },
+      {
+        path: "register",
+        element: <AuthLayouts><RegisterPage /></AuthLayouts>,
+      },
+      {
+        path: "verify-otp",
+        element: <AuthLayouts><VerifyOTP /></AuthLayouts>,
+      },
+      {
+        path: "email",
+        element: <AuthLayouts><CheckEmailPage /></AuthLayouts>,
+      },
+      {
+        path: "password",
+        element: <AuthLayouts><CheckPasswordPage /></AuthLayouts>,
+      },
+      {
+        path: "forgot-password",
+        element: <AuthLayouts><ForgotPassword /></AuthLayouts>,
+      },
+      {
+        path: "places",
+        element: <AuthLayouts><Places /></AuthLayouts>,
+      },
+      {
+        path: "places/:categories",
+        element: <AuthLayouts><PlaceList /></AuthLayouts>,
+      },
+      {
+        path: "admin",
+        element: <AuthLayouts><Admin /></AuthLayouts>,
+        children: [
+          {
+            path: "add-place",
+            element: <AuthLayouts><AddPlace /></AuthLayouts>,
+          }
         ]
-    }
-])
+      },
+      {
+        path: "navigate",
+        element: <Navigation />,
+      },
+      {
+        path: "mapbox",
+        element: <Mapbox />,
+      },
+      {
+        path: "home",
+        element: <AuthLayouts><Home /></AuthLayouts>,
+        children: [
+          {
+            path: ":userId",
+            element: <MessagePage />,
+          },
+        ],
+      },
+    ],
+  },
+]);
 
-export default router
+export default router;

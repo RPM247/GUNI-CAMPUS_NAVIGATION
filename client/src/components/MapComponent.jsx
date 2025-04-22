@@ -63,7 +63,7 @@ const MapComponent = () => {
               });
             },
             (err) => setError("Error detecting location: " + err.message),
-            { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
+            { enableHighAccuracy: true, timeout: 100000000, maximumAge: 0 }
           );
         },
         (err) => setError("Error detecting location: " + err.message),
