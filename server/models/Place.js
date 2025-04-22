@@ -1,13 +1,15 @@
 const mongoose = require("mongoose");
 
 const PlaceSchema = new mongoose.Schema({
-  category: { type: String, required: true }, // e.g., "hostels", "colleges"
-  name: { type: String, required: true }, // e.g., "Boys Hostel 1"
-  imageUrl: { type: String, required: false }, // URL to the place's image
+  category: { type: String, required: true },
+  name: { type: String, required: true },
+  imageUrl: { type: String, required: false },
   coordinates: {
-    lat: { type: Number, required: true }, // Latitude
-    lng: { type: Number, required: true }, // Longitude
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true },
   },
+  description: { type: String, required: false }, // 🆕 Description of the place
+  phone: { type: String, required: false },       // 🆕 Contact number
 });
 
 const Place = mongoose.model("Place", PlaceSchema);

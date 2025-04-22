@@ -15,6 +15,7 @@ import Admin from "../pages/Admin";
 import Navigation from "../pages/Navigation";
 import Mapbox from "../components/Mapbox";
 import AddPlace from "../pages/AddPlace";
+import EditPlace from "../pages/EditPlace";
 
 const router = createBrowserRouter([
   {
@@ -56,12 +57,10 @@ const router = createBrowserRouter([
       {
         path: "admin",
         element: <AuthLayouts><Admin /></AuthLayouts>,
-        children: [
-          {
-            path: "add-place",
-            element: <AuthLayouts><AddPlace /></AuthLayouts>,
-          }
-        ]
+      },
+      {
+        path: "admin/add-place",
+        element: <AuthLayouts><AddPlace /></AuthLayouts>,
       },
       {
         path: "navigate",
@@ -71,6 +70,10 @@ const router = createBrowserRouter([
         path: "mapbox",
         element: <Mapbox />,
       },
+      {
+        path: "admin/edit-place/:id",
+        element: <AuthLayouts><EditPlace/></AuthLayouts>,
+      },      
       {
         path: "home",
         element: <AuthLayouts><Home /></AuthLayouts>,

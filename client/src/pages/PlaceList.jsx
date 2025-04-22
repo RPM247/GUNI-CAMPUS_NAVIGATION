@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import axios from "axios";
 
 const PlaceList = () => {
   const location = useLocation();
@@ -8,9 +10,10 @@ const PlaceList = () => {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { token, _id } = useSelector((state) => state.user); // get current user
 
-  useEffect(() => {
-    fetch(`http://localhost:8081/api/places/${category}`)
+  const fetchPlaces = () => {
+    fetch(`http://localhost:8081/api/places/category/${category}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.message) {
@@ -27,7 +30,24 @@ const PlaceList = () => {
         setError("Failed to load places");
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchPlaces();
   }, [category]);
+
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this place?")) return;
+    try {
+      await axios.delete(`http://localhost:8081/api/places/${id}`);
+      fetchPlaces(); // refresh after delete
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Failed to delete place");
+    }
+  };
+
+  const isAdmin = token && _id; // assume only admin reaches this route
 
   if (loading) return <p className="text-center text-gray-500">Loading places...</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
@@ -37,28 +57,29 @@ const PlaceList = () => {
       <h2 className="text-2xl font-bold mb-4">Places in {category}</h2>
       <ul className="space-y-4">
         {places.map((place) => (
-          <li
-            key={place._id}
-            className="flex items-center bg-white rounded-lg shadow-md p-4 hover:bg-gray-100 transition cursor-pointer"
-          >
-            <img
-              src={place.imageUrl || "https://via.placeholder.com/80"}
-              alt={place.name}
-              className="w-16 h-16 rounded-md object-cover"
-            />
-            <div className="ml-4">
+          <li key={place._id} className="flex items-center bg-white rounded-lg shadow-md p-4 hover:bg-gray-100 transition">
+            <img src={place.imageUrl || "https://via.placeholder.com/80"} alt={place.name} className="w-16 h-16 rounded-md object-cover" />
+            <div className="ml-4 flex-1">
               <p className="font-semibold">{place.name}</p>
+              <p className="text-sm text-gray-500">{place.description}</p>
             </div>
-            <button
-              className="ml-auto text-gray-600"
-              onClick={() =>
-                navigate("/navigate", {
-                  state: { destination: place.coordinates },
-                })
-              }
-            >
-              ➜
-            </button>
+            <button className="ml-2 text-gray-600" onClick={() => navigate("/mapbox", { state: { destination: place.coordinates } })}>➜</button>
+            {isAdmin && (
+              <>
+                <button
+                  className="ml-4 text-blue-600 underline"
+                  onClick={() => navigate(`/admin/edit-place/${place._id}`)}
+                >
+                  Update
+                </button>
+                <button
+                  className="ml-2 text-red-600 underline"
+                  onClick={() => handleDelete(place._id)}
+                >
+                  Delete
+                </button>
+              </>
+            )}
           </li>
         ))}
       </ul>

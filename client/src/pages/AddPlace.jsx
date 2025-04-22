@@ -1,30 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, useMapEvents, Marker } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Fix default icon issue in Leaflet
+// Fix default Leaflet icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const AddPlace = () => {
+const AddPlace = ({ editData }) => {
+  const navigate = useNavigate();
+  const [file, setFile] = useState(null);
+
   const [form, setForm] = useState({
     name: "",
     category: "",
     imageUrl: "",
     coordinates: { lat: "", lng: "" },
+    description: "",
+    phone: "",
   });
-  const [file, setFile] = useState(null);
-  const navigate = useNavigate();
 
-  // 📍 Custom map click handler for Leaflet
+  // Prepopulate form if editing
+  useEffect(() => {
+    if (editData) {
+      setForm({
+        name: editData.name || "",
+        category: editData.category || "",
+        imageUrl: editData.imageUrl || "",
+        coordinates: {
+          lat: editData.coordinates?.lat || "",
+          lng: editData.coordinates?.lng || "",
+        },
+        description: editData.description || "",
+        phone: editData.phone || "",
+      });
+    }
+  }, [editData]);
+
   const LocationMarker = () => {
     useMapEvents({
       click(e) {
@@ -41,9 +59,8 @@ const AddPlace = () => {
     ) : null;
   };
 
-  // 📷 Upload image to Cloudinary
   const handleUpload = async () => {
-    if (!file) return ""; // Optional image
+    if (!file) return form.imageUrl || "";
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "GUNI-CN-file");
@@ -56,11 +73,10 @@ const AddPlace = () => {
       return res.data.secure_url;
     } catch (err) {
       console.error("Image upload failed:", err);
-      return "";
+      return form.imageUrl || "";
     }
   };
 
-  // 📝 Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -68,33 +84,46 @@ const AddPlace = () => {
       const placeData = {
         ...form,
         imageUrl,
+        coordinates: {
+          lat: parseFloat(form.coordinates.lat),
+          lng: parseFloat(form.coordinates.lng),
+        },
       };
 
-      console.log("🔁 Submitting place data:", placeData);
-      const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/places/add`,
-        placeData
-      );
-      console.log("✅ Response:", res.data);
+      let res;
+      if (editData && editData._id) {
+        // Update existing place
+        res = await axios.put(
+          `${import.meta.env.VITE_BACKEND_URL}/api/places/${editData._id}`,
+          placeData
+        );
+        console.log("✅ Place updated:", res.data);
+      } else {
+        // Add new place
+        res = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/places/add`,
+          placeData
+        );
+        console.log("✅ Place added:", res.data);
+      }
 
       navigate("/admin");
     } catch (error) {
-      console.error("❌ Error details:", error);
-      if (error.response) {
-        console.error("Response error:", error.response.data);
-      }
-      alert("Something went wrong while adding the place.");
+      console.error("❌ Error:", error);
+      alert("Something went wrong.");
     }
   };
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Add New Place</h2>
+      <h2 className="text-xl font-semibold mb-4">
+        {editData ? "Update Place" : "Add New Place"}
+      </h2>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md">
         <input
           type="text"
-          placeholder="Category (e.g., hostels, colleges)"
+          placeholder="Category"
           value={form.category}
           onChange={(e) =>
             setForm({ ...form, category: e.target.value.toLowerCase() })
@@ -151,19 +180,34 @@ const AddPlace = () => {
             required
           />
         </div>
+        <input
+          type="text"
+          placeholder="Description"
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Phone Number"
+          value={form.phone}
+          onChange={(e) => setForm({ ...form, phone: e.target.value })}
+        />
 
         <button
           type="submit"
           className="bg-green-600 text-white px-4 py-2 rounded"
         >
-          Submit
+          {editData ? "Update Place" : "Add Place"}
         </button>
       </form>
 
       <div className="mt-8">
         <h3 className="mb-2 font-bold">Click on Map to Pick Coordinates</h3>
         <MapContainer
-          center={[23.530, 72.458]}
+          center={[
+            form.coordinates.lat || 23.530,
+            form.coordinates.lng || 72.458,
+          ]}
           zoom={14}
           style={{ height: "400px", width: "100%" }}
         >

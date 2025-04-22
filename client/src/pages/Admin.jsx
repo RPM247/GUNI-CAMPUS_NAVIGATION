@@ -9,17 +9,26 @@ const Admin = () => {
   const user = useSelector(state => state.user)
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(true) // Prevent premature rendering
+  const [loading, setLoading] = useState(true)
+  const [showCategories, setShowCategories] = useState(false)
+
+  const categories = [
+    { name: "Hostels", icon: "🏨", route: "/places/hostel", value: "hostel" },
+    { name: "Colleges", icon: "🏫", route: "/places/college", value: "college" },
+    { name: "Mess", icon: "🍽", route: "/places/mess", value: "mess" },
+    { name: "Sports Complex", icon: "🏀", route: "/places/sports", value: "sports" },
+    { name: "Gym", icon: "🏋️", route: "/places/gym", value: "gym" },
+    { name: "Hospital", icon: "🏥", route: "/places/hospital", value: "hospital" },
+    { name: "Parking", icon: "🅿️", route: "/places/parking", value: "parking" },
+    { name: "Canteen", icon: "🍔", route: "/places/canteen", value: "canteen" },
+    { name: "Others", icon: "⋮", route: "/places/others", value: "others" },
+  ]
 
   const fetchUserDetails = async () => {
     try {
       const URL = `${import.meta.env.VITE_BACKEND_URL}/api/user-details`
-      const response = await axios({
-        url: URL,
-        withCredentials: true
-      })
+      const response = await axios({ url: URL, withCredentials: true })
 
-      // If no user or not admin, block access
       if (!response.data.data || !response.data.data.isAdmin) {
         dispatch(logout())
         localStorage.clear()
@@ -55,12 +64,11 @@ const Admin = () => {
     }
   }
 
-  if (loading) return null // or a loading spinner
+  if (loading) return null
 
   return (
-    <div className="min-h-screen flex flex-col relative">
-      admin
-      {/* Add Place button - top left */}
+    <div className="min-h-screen flex flex-col relative bg-gray-50">
+      {/* Add Place Button */}
       <div className="absolute top-6 left-4">
         <button
           onClick={() => navigate("/admin/add-place")}
@@ -70,7 +78,17 @@ const Admin = () => {
         </button>
       </div>
 
-      {/* Logout button - top right */}
+      {/* View Categories Button */}
+      <div className="absolute top-6 left-48">
+        <button
+          onClick={() => setShowCategories(!showCategories)}
+          className="bg-purple-600 text-white px-4 py-2 rounded"
+        >
+          📂 View Categories
+        </button>
+      </div>
+
+      {/* Logout Button */}
       <div className="absolute top-4 right-4">
         <button
           title="Logout"
@@ -80,8 +98,26 @@ const Admin = () => {
         </button>
       </div>
 
-      <section>
-        <Outlet />
+      <section className="p-4">
+        {showCategories ? (
+          <div className="mt-16"> {/* Added margin from the top */}
+            <h2 className="text-xl font-bold mb-4">Browse Places by Category</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {categories.map((cat, index) => (
+                <div
+                  key={index}
+                  onClick={() => navigate(cat.route, { state: { category: cat.value } })}
+                  className="bg-white shadow-md p-4 rounded-lg flex flex-col items-center cursor-pointer hover:bg-gray-200 transition transform hover:scale-105"
+                >
+                  <span className="text-3xl">{cat.icon}</span>
+                  <p className="mt-2 font-semibold">{cat.name}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </section>
     </div>
   )

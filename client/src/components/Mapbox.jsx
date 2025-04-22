@@ -43,7 +43,7 @@ const Mapbox = () => {
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/streets-v12",
+      style: "mapbox://styles/mapbox/outdoors-v12",
       center: [72.458111, 23.530215],
       zoom: ZOOM_LEVEL,
     });
@@ -166,7 +166,7 @@ const Mapbox = () => {
   }, [source, destination]);
 
   const drawRoute = async (from, to) => {
-    const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${from.lng},${from.lat};${to.lng},${to.lat}?geometries=geojson&overview=full&access_token=${mapboxgl.accessToken}`;
+    const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${from.lng},${from.lat};${to.lng},${to.lat}?geometries=geojson&overview=full&continue_straight=false&access_token=${mapboxgl.accessToken}`;
     console.log("Fetching route from Mapbox API:", url);
 
     try {
@@ -181,7 +181,7 @@ const Mapbox = () => {
 
       const routeCoords = data.geometry.coordinates;
       console.log("Route coordinates:", routeCoords);
-
+      
       // Remove existing route layer if it exists
       if (mapRef.current.getSource("route")) {
         mapRef.current.removeLayer("route");
@@ -240,7 +240,7 @@ const Mapbox = () => {
       {/* Top Control Panel */}
       <div className="absolute top-5 left-5 z-10 bg-white rounded-xl shadow-lg p-4 w-72">
         <p className="font-semibold text-gray-800 text-sm mb-2">📏 Distance: {distance}</p>
-        <div className="text-sm text-gray-600 mb-2">🖱️ Click on map to select:</div>
+        {/* <div className="text-sm text-gray-600 mb-2">🖱️ Click on map to select:</div>
         <div className="space-y-2">
           <button
             onClick={() => {
@@ -264,7 +264,7 @@ const Mapbox = () => {
           >
             Select Destination
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Zoom Controls */}

@@ -11,7 +11,13 @@ const verifyOTP = require('../controller/verifyOtp');
 const { forgotPassword, VerifyOTP, resetPassword } = require('../controller/authController');
 
 // 📌 Place-related Controllers
-const { getPlacesByCategory, addPlace } = require('../controller/placeController')
+const {
+    getPlacesByCategory,
+    addPlace,
+    getPlaceById,
+    updatePlace,
+    deletePlace
+  } = require("../controller/placeController");
 
 const router = express.Router();
 
@@ -28,7 +34,10 @@ router.post('/verify', VerifyOTP);
 router.post('/reset-password', resetPassword);
 
 // 📍 Place Routes (Admin and Public Access)
-router.get('/places/:category', getPlacesByCategory); // Get places by category (e.g., hostels, colleges)
-router.post('/places/add', addPlace);                    // Admin adds a new place
+router.get('/places/:id', getPlaceById); // GET place by ID
+router.get('/places/category/:category', getPlacesByCategory); // GET by category
+router.post('/places/add', addPlace); // Add new
+router.put("/places/:id", updatePlace); // Update
+router.delete('/places/:id', deletePlace); // Delete
 
 module.exports = router;
