@@ -7,7 +7,7 @@ const checkPassword = require('../controller/checkPassword');
 const userDetails = require('../controller/userDetails');
 const logout = require('../controller/logout');
 const updateUserDetails = require('../controller/updateUserDetails');
-const verifyOTP = require('../controller/verifyOtp');
+const verifyOTP = require('../controller/verifyOTP');
 const { forgotPassword, VerifyOTP, resetPassword } = require('../controller/authController');
 
 // 📌 Place-related Controllers
