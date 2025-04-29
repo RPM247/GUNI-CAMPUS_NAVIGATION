@@ -33,7 +33,7 @@ router.post('/forgot-password', forgotPassword);
 router.post('/verify', VerifyOTP);
 router.post('/reset-password', resetPassword);
 
-// 📍 Place Routes (Admin and Public Access)
+// Place Routes (Admin and Public Access)
 router.get('/places/:id', getPlaceById); // GET place by ID
 router.get('/places/category/:category', getPlacesByCategory); // GET by category
 router.post('/places/add', addPlace); // Add new
