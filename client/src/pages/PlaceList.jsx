@@ -13,7 +13,7 @@ const PlaceList = () => {
   const { token, _id } = useSelector((state) => state.user); // get current user
 
   const fetchPlaces = () => {
-    fetch(`http://localhost:8081/api/places/category/${category}`)
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/places/category/${category}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.message) {
@@ -39,7 +39,7 @@ const PlaceList = () => {
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this place?")) return;
     try {
-      await axios.delete(`http://localhost:8081/api/places/${id}`);
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/places/${id}`);
       fetchPlaces(); // refresh after delete
     } catch (err) {
       console.error("Delete error:", err);

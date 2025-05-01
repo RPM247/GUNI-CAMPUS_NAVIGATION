@@ -8,7 +8,7 @@ const EditPlace = () => {
   const [place, setPlace] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:8081/api/places/${id}`)
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/places/${id}`)
       .then(res => setPlace(res.data))
       .catch(err => {
         console.error("Error loading place:", err);
