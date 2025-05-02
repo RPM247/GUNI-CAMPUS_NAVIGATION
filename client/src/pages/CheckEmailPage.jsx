@@ -73,5 +73,5 @@ const CheckEmailPage = () => {
     </div>
   )
 }
-console.log("URL is:", import.meta.env.VITE_BACKEND_URL)
+
 export default CheckEmailPage
