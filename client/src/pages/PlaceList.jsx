@@ -63,7 +63,7 @@ const PlaceList = () => {
               <p className="font-semibold">{place.name}</p>
               <p className="text-sm text-gray-500">{place.description}</p>
             </div>
-            <button className="ml-2 text-gray-600" onClick={() => navigate("/mapbox", { state: { destination: place.coordinates } })}>➜</button>
+            <button className="ml-2 text-gray-600" onClick={() => navigate("/navigate", { state: { destination: place.coordinates } })}>➜</button>
             {isAdmin && (
               <>
                 <button
