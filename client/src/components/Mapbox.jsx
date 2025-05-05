@@ -26,7 +26,6 @@ const Mapbox = () => {
   const lastUpdatedRef = useRef(0);
   const lastLocationRef = useRef(null);
 
-  // Location Permission Check
   useEffect(() => {
     if (!navigator.geolocation) {
       setError("Geolocation not supported.");
@@ -39,7 +38,6 @@ const Mapbox = () => {
     });
   }, []);
 
-  // Initialize Map
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapContainer.current,
@@ -51,11 +49,8 @@ const Mapbox = () => {
     mapRef.current = map;
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-    map.getCanvas().addEventListener("contextmenu", (e) => {
-      e.stopPropagation();
-    });
+    map.getCanvas().addEventListener("contextmenu", (e) => e.stopPropagation());
 
-    // Map onClick event
     map.on("click", (e) => {
       const { lng, lat } = e.lngLat;
 
@@ -89,7 +84,6 @@ const Mapbox = () => {
     return () => map.remove();
   }, []);
 
-  // Track User Location and Update Route
   useEffect(() => {
     if (!navigator.geolocation) {
       setError("Geolocation not supported.");
@@ -138,7 +132,6 @@ const Mapbox = () => {
     return () => navigator.geolocation.clearWatch(watchId);
   }, [source, destination]);
 
-  // Trigger drawRoute when source or destination changes
   useEffect(() => {
     if (!source || !destination) return;
     drawRoute(source, destination);
@@ -205,11 +198,56 @@ const Mapbox = () => {
     return R * c;
   };
 
+  const clearRoute = () => {
+    setSource(null);
+    setDestination(null);
+    setDistance("N/A");
+
+    if (mapRef.current.getSource("route")) {
+      mapRef.current.removeLayer("route");
+      mapRef.current.removeSource("route");
+    }
+
+    if (sourceMarker.current) {
+      sourceMarker.current.remove();
+      sourceMarker.current = null;
+    }
+
+    if (destinationMarker.current) {
+      destinationMarker.current.remove();
+      destinationMarker.current = null;
+    }
+  };
+
   return (
     <div className="h-screen w-screen relative overflow-hidden">
-      <div className="absolute top-5 left-5 z-10 bg-white rounded-xl shadow-lg p-4 w-72">
-        <p className="font-semibold text-gray-800 text-sm mb-2">📏 Distance: {distance}</p>
-        {/* Future enhancements: Manual Source/Destination Selection UI */}
+      <div className="absolute top-5 left-5 z-10 bg-white rounded-xl shadow-lg p-4 w-80 space-y-3">
+        <p className="font-semibold text-gray-800 text-sm">📏 Distance: {distance}</p>
+
+        <div className="flex gap-2 text-xs">
+          <button
+            onClick={() => setCustomSelectionMode("source")}
+            className={`px-2 py-1 rounded-md font-medium border ${
+              customSelectionMode === "source" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            Set Source
+          </button>
+          <button
+            onClick={() => setCustomSelectionMode("destination")}
+            className={`px-2 py-1 rounded-md font-medium border ${
+              customSelectionMode === "destination" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            Set Destination
+          </button>
+          <button
+            onClick={clearRoute}
+            className="px-2 py-1 rounded-md bg-red-100 text-red-700 font-medium border"
+          >
+            Clear
+          </button>
+        </div>
       </div>
 
       <div className="absolute bottom-6 left-6 z-10 bg-white rounded-lg shadow flex flex-col">
