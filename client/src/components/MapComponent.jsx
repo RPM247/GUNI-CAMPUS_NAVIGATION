@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"; 
+import React, { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvent } from "react-leaflet";
 import { useLocation } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
@@ -18,13 +18,15 @@ const destinationIcon = new L.Icon({
   iconSize: [40, 40],
 });
 
-const FocusMap = ({ position }) => {
+const FocusMap = ({ position, shouldZoom }) => {
   const map = useMap();
+
   useEffect(() => {
-    if (position) {
+    if (position && shouldZoom) {
       map.flyTo(position, ZOOM_LEVEL);
     }
-  }, [position, map]);
+  }, [position, shouldZoom, map]);
+
   return null;
 };
 
@@ -45,6 +47,8 @@ const MapComponent = () => {
   const [distance, setDistance] = useState("N/A");
   const [error, setError] = useState("");
   const [customLocationEnabled, setCustomLocationEnabled] = useState(false);
+  const [shouldZoomToUser, setShouldZoomToUser] = useState(false);
+  const zoomedOnceRef = useRef(false); // to ensure zoom happens only once
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -86,6 +90,14 @@ const MapComponent = () => {
       }));
       setPath(coordinates);
       setDistance((response.data.features[0].properties.segments[0].distance / 1000).toFixed(2) + " km");
+
+      // Trigger zoom only once when path is first drawn
+      if (!zoomedOnceRef.current) {
+        setShouldZoomToUser(true);
+        zoomedOnceRef.current = true;
+      } else {
+        setShouldZoomToUser(false);
+      }
     } catch (err) {
       setError("Error fetching shortest path.");
     }
@@ -106,10 +118,14 @@ const MapComponent = () => {
             if (e.target.value === "custom") {
               setCustomLocationEnabled(true);
               setDestination(null);
+              setPath([]);
+              setDistance("N/A");
+              zoomedOnceRef.current = false;
             } else {
               const [lat, lng] = e.target.value.split(",").map(parseFloat);
               setDestination({ lat, lng });
               setCustomLocationEnabled(false);
+              zoomedOnceRef.current = false;
             }
           }}
           value={destination ? `${destination.lat},${destination.lng}` : ""}
@@ -118,10 +134,10 @@ const MapComponent = () => {
           <option value="custom">Custom Location</option>
         </select>
       </div>
-      
+
       <p className="font-bold text-center">Distance: {distance}</p>
       <MapContainer center={userLocation || { lat: 23.530215, lng: 72.458111 }} zoom={ZOOM_LEVEL} className="h-full w-full">
-        <FocusMap position={userLocation} />
+        <FocusMap position={userLocation} shouldZoom={shouldZoomToUser} />
         <MapClickHandler setDestination={setDestination} customLocationEnabled={customLocationEnabled} />
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
