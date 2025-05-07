@@ -6,8 +6,8 @@ import axios from "axios";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const ZOOM_LEVEL = 18;
-const UPDATE_INTERVAL = 8000; // 8 seconds
-const MIN_DISTANCE_CHANGE = 10; // meters (tuned for campus-scale navigation)
+const UPDATE_INTERVAL = 8000; 
+const MIN_DISTANCE_CHANGE = 10;
 
 const Mapbox = () => {
   const location = useLocation();
@@ -225,7 +225,7 @@ const Mapbox = () => {
         <p className="font-semibold text-gray-800 text-sm">📏 Distance: {distance}</p>
 
         <div className="flex gap-2 text-xs">
-          <button
+          {/* <button
             onClick={() => setCustomSelectionMode("source")}
             className={`px-2 py-1 rounded-md font-medium border ${
               customSelectionMode === "source" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"
@@ -240,7 +240,7 @@ const Mapbox = () => {
             }`}
           >
             Set Destination
-          </button>
+          </button> */}
           <button
             onClick={clearRoute}
             className="px-2 py-1 rounded-md bg-red-100 text-red-700 font-medium border"

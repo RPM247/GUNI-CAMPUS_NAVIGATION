@@ -49,7 +49,14 @@ const PlaceList = () => {
 
   const isAdmin = token && _id; // assume only admin reaches this route
 
-  if (loading) return <p className="text-center text-gray-500">Loading places...</p>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-solid"></div>
+      </div>
+    );
+  }
+
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
@@ -57,24 +64,37 @@ const PlaceList = () => {
       <h2 className="text-2xl font-bold mb-4">Places in {category}</h2>
       <ul className="space-y-4">
         {places.map((place) => (
-          <li key={place._id} className="flex items-center bg-white rounded-lg shadow-md p-4 hover:bg-gray-100 transition">
-            <img src={place.imageUrl || "https://via.placeholder.com/80"} alt={place.name} className="w-16 h-16 rounded-md object-cover" />
+          <li
+            key={place._id}
+            className="flex items-center bg-white rounded-lg shadow-md p-4 hover:bg-gray-100 transition cursor-pointer"
+            onClick={() => navigate("/mapbox", { state: { destination: place.coordinates } })}
+          >
+            <img
+              src={place.imageUrl || "https://via.placeholder.com/80"}
+              alt={place.name}
+              className="w-16 h-16 rounded-md object-cover"
+            />
             <div className="ml-4 flex-1">
               <p className="font-semibold">{place.name}</p>
               <p className="text-sm text-gray-500">{place.description}</p>
             </div>
-            <button className="ml-2 text-gray-600" onClick={() => navigate("/mapbox", { state: { destination: place.coordinates } })}>➜</button>
             {isAdmin && (
               <>
                 <button
                   className="ml-4 text-blue-600 underline"
-                  onClick={() => navigate(`/admin/edit-place/${place._id}`)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the card click
+                    navigate(`/admin/edit-place/${place._id}`);
+                  }}
                 >
                   Update
                 </button>
                 <button
                   className="ml-2 text-red-600 underline"
-                  onClick={() => handleDelete(place._id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the card click
+                    handleDelete(place._id);
+                  }}
                 >
                   Delete
                 </button>

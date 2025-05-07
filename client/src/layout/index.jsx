@@ -1,5 +1,5 @@
 import React from 'react'
-import logo from '../assets/guni_logo.png'
+import logo from '../assets/guni_logo1.png'
 
 const AuthLayouts = ({children}) => {
   return (
