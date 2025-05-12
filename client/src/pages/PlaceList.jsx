@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import AnimatedRoute from "../components/AnimatedRoute";
 
 const PlaceList = () => {
   const location = useLocation();
@@ -51,11 +52,12 @@ const PlaceList = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-solid"></div>
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <AnimatedRoute />
       </div>
     );
   }
+
 
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
