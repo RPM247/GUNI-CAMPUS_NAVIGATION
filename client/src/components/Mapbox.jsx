@@ -6,8 +6,8 @@ import axios from "axios";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const ZOOM_LEVEL = 18;
-const UPDATE_INTERVAL = 8000; 
-const MIN_DISTANCE_CHANGE = 10;
+const UPDATE_INTERVAL = 5000; // Update every 5 seconds
+const MIN_DISTANCE_CHANGE = 10; // Minimum distance change to trigger route update
 
 const Mapbox = () => {
   const location = useLocation();
@@ -15,13 +15,10 @@ const Mapbox = () => {
   const mapRef = useRef(null);
   const userMarker = useRef(null);
   const destinationMarker = useRef(null);
-  const sourceMarker = useRef(null);
 
   const [userLocation, setUserLocation] = useState(null);
-  const [source, setSource] = useState(null);
   const [destination, setDestination] = useState(location.state?.destination || null);
   const [distance, setDistance] = useState("N/A");
-  const [customSelectionMode, setCustomSelectionMode] = useState("none");
   const [error, setError] = useState("");
   const lastUpdatedRef = useRef(0);
   const lastLocationRef = useRef(null);
@@ -51,36 +48,6 @@ const Mapbox = () => {
 
     map.getCanvas().addEventListener("contextmenu", (e) => e.stopPropagation());
 
-    map.on("click", (e) => {
-      const { lng, lat } = e.lngLat;
-
-      if (customSelectionMode === "source") {
-        const src = { lat, lng };
-        setSource(src);
-        if (!sourceMarker.current) {
-          sourceMarker.current = new mapboxgl.Marker({ element: createMarker("🧍") })
-            .setLngLat([lng, lat])
-            .setPopup(new mapboxgl.Popup().setText("📍 Source"))
-            .addTo(mapRef.current);
-        } else {
-          sourceMarker.current.setLngLat([lng, lat]);
-        }
-        setCustomSelectionMode("none");
-      } else if (customSelectionMode === "destination") {
-        const dest = { lat, lng };
-        setDestination(dest);
-        if (!destinationMarker.current) {
-          destinationMarker.current = new mapboxgl.Marker({ element: createMarker("🏁") })
-            .setLngLat([lng, lat])
-            .setPopup(new mapboxgl.Popup().setText("📍 Destination"))
-            .addTo(mapRef.current);
-        } else {
-          destinationMarker.current.setLngLat([lng, lat]);
-        }
-        setCustomSelectionMode("none");
-      }
-    });
-
     return () => map.remove();
   }, []);
 
@@ -94,7 +61,6 @@ const Mapbox = () => {
       ({ coords }) => {
         const pos = { lat: coords.latitude, lng: coords.longitude };
         setUserLocation(pos);
-        setSource((prev) => prev || pos);
 
         if (mapRef.current) {
           mapRef.current.flyTo({ center: [pos.lng, pos.lat], zoom: ZOOM_LEVEL });
@@ -119,9 +85,8 @@ const Mapbox = () => {
           lastUpdatedRef.current = now;
           lastLocationRef.current = pos;
 
-          const actualSource = source || pos;
           if (destination) {
-            drawRoute(actualSource, destination);
+            drawRoute(pos, destination); // Update the route dynamically
           }
         }
       },
@@ -130,12 +95,7 @@ const Mapbox = () => {
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [source, destination]);
-
-  useEffect(() => {
-    if (!source || !destination) return;
-    drawRoute(source, destination);
-  }, [source, destination]);
+  }, [destination]);
 
   const drawRoute = async (from, to) => {
     const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${from.lng},${from.lat};${to.lng},${to.lat}?geometries=geojson&overview=full&continue_straight=false&access_token=${mapboxgl.accessToken}`;
@@ -198,56 +158,10 @@ const Mapbox = () => {
     return R * c;
   };
 
-  const clearRoute = () => {
-    setSource(null);
-    setDestination(null);
-    setDistance("N/A");
-
-    if (mapRef.current.getSource("route")) {
-      mapRef.current.removeLayer("route");
-      mapRef.current.removeSource("route");
-    }
-
-    if (sourceMarker.current) {
-      sourceMarker.current.remove();
-      sourceMarker.current = null;
-    }
-
-    if (destinationMarker.current) {
-      destinationMarker.current.remove();
-      destinationMarker.current = null;
-    }
-  };
-
   return (
     <div className="h-screen w-screen relative overflow-hidden">
       <div className="absolute top-5 left-5 z-10 bg-white rounded-xl shadow-lg p-4 w-80 space-y-3">
         <p className="font-semibold text-gray-800 text-sm">📏 Distance: {distance}</p>
-
-        <div className="flex gap-2 text-xs">
-          {/* <button
-            onClick={() => setCustomSelectionMode("source")}
-            className={`px-2 py-1 rounded-md font-medium border ${
-              customSelectionMode === "source" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            Set Source
-          </button>
-          <button
-            onClick={() => setCustomSelectionMode("destination")}
-            className={`px-2 py-1 rounded-md font-medium border ${
-              customSelectionMode === "destination" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            Set Destination
-          </button> */}
-          <button
-            onClick={clearRoute}
-            className="px-2 py-1 rounded-md bg-red-100 text-red-700 font-medium border"
-          >
-            Clear
-          </button>
-        </div>
       </div>
 
       <div className="absolute bottom-6 left-6 z-10 bg-white rounded-lg shadow flex flex-col">
