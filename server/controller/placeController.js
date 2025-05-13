@@ -1,5 +1,15 @@
 const Place = require("../models/Place");
 
+// 📌 GET all places
+async function getAllPlaces(req, res) {
+  try {
+    const places = await Place.find();
+    return res.status(200).json(places);
+  } catch (error) {
+    return res.status(500).json({ message: "Error fetching all places", error: error.message || error });
+  }
+}
+
 // 📌 GET all places by category
 async function getPlacesByCategory(req, res) {
   try {
@@ -90,6 +100,7 @@ async function deletePlace(req, res) {
 }
 
 module.exports = {
+  getAllPlaces,            // ✅ Added this export
   getPlacesByCategory,
   addPlace,
   getPlaceById,

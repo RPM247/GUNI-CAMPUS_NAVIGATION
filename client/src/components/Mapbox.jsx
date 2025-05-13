@@ -20,6 +20,8 @@ const Mapbox = () => {
   const [destination, setDestination] = useState(location.state?.destination || null);
   const [distance, setDistance] = useState("N/A");
   const [error, setError] = useState("");
+  const [places, setPlaces] = useState([]); // This holds all the places
+  const [visitedPlaces, setVisitedPlaces] = useState([]); // This tracks visited places
   const lastUpdatedRef = useRef(0);
   const lastLocationRef = useRef(null);
 
@@ -35,6 +37,19 @@ const Mapbox = () => {
     });
   }, []);
 
+  // Fetch places from /api/places/all
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/places/all`); // Updated endpoint
+        setPlaces(res.data.places || []);
+      } catch (err) {
+        console.error("Failed to fetch places", err);
+      }
+    };
+    fetchPlaces();
+  }, []);
+
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapContainer.current,
@@ -45,7 +60,6 @@ const Mapbox = () => {
 
     mapRef.current = map;
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
-
     map.getCanvas().addEventListener("contextmenu", (e) => e.stopPropagation());
 
     return () => map.remove();
@@ -86,8 +100,24 @@ const Mapbox = () => {
           lastLocationRef.current = pos;
 
           if (destination) {
-            drawRoute(pos, destination); // Update the route dynamically
+            drawRoute(pos, destination);
           }
+        }
+
+        if (places.length > 0) {
+          places.forEach((place) => {
+            const placeCoord = {
+              lat: place.coordinates.latitude,
+              lng: place.coordinates.longitude,
+            };
+
+            const distToPlace = haversineDistance(pos, placeCoord);
+            console.log(`Distance to ${place.name}: ${distToPlace.toFixed(2)}m`);
+            if (distToPlace < 100 && !visitedPlaces.includes(place._id)) {
+              setVisitedPlaces((prev) => [...prev, place._id]);
+              showPlacePopup(place);
+            }
+          });
         }
       },
       (err) => setError("Failed to get location."),
@@ -95,7 +125,7 @@ const Mapbox = () => {
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [destination]);
+  }, [destination, places]);
 
   const drawRoute = async (from, to) => {
     const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${from.lng},${from.lat};${to.lng},${to.lat}?geometries=geojson&overview=full&continue_straight=false&access_token=${mapboxgl.accessToken}`;
@@ -142,6 +172,21 @@ const Mapbox = () => {
     el.style.fontSize = "30px";
     el.textContent = emoji;
     return el;
+  };
+
+  const showPlacePopup = (place) => {
+    const popupNode = document.createElement("div");
+    popupNode.innerHTML = `
+      <div style="width: 200px">
+        <img src="${place.imageUrl}" alt="${place.name}" style="width: 100%; height: auto; border-radius: 8px;" />
+        <h4 style="margin-top: 8px;">${place.name}</h4>
+      </div>
+    `;
+
+    new mapboxgl.Popup({ offset: 25, closeOnClick: false })
+      .setLngLat([place.coordinates.longitude, place.coordinates.latitude])
+      .setDOMContent(popupNode)
+      .addTo(mapRef.current);
   };
 
   const haversineDistance = (loc1, loc2) => {

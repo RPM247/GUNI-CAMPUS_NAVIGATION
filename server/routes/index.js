@@ -12,12 +12,13 @@ const { forgotPassword, VerifyOTP, resetPassword } = require('../controller/auth
 
 // 📌 Place-related Controllers
 const {
+    getAllPlaces,               // ✅ Added
     getPlacesByCategory,
     addPlace,
     getPlaceById,
     updatePlace,
     deletePlace
-  } = require("../controller/placeController");
+} = require("../controller/placeController");
 
 const router = express.Router();
 
@@ -33,7 +34,8 @@ router.post('/forgot-password', forgotPassword);
 router.post('/verify', VerifyOTP);
 router.post('/reset-password', resetPassword);
 
-// Place Routes (Admin and Public Access)
+// 📌 Place Routes (Admin and Public Access)
+router.get('/places/all', getAllPlaces); // ✅ GET all places
 router.get('/places/:id', getPlaceById); // GET place by ID
 router.get('/places/category/:category', getPlacesByCategory); // GET by category
 router.post('/places/add', addPlace); // Add new
