@@ -42,7 +42,8 @@ const Mapbox = () => {
     const fetchPlaces = async () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/places/all`); // Updated endpoint
-        setPlaces(res.data.places || []);
+        setPlaces(res.data);
+        console.log("Fetched places:", res.data);
       } catch (err) {
         console.error("Failed to fetch places", err);
       }
@@ -106,9 +107,10 @@ const Mapbox = () => {
 
         if (places.length > 0) {
           places.forEach((place) => {
+            console.log("Raw place data:", place);
             const placeCoord = {
-              lat: place.coordinates.latitude,
-              lng: place.coordinates.longitude,
+              lat: place.coordinates.lat,
+              lng: place.coordinates.lng,
             };
 
             const distToPlace = haversineDistance(pos, placeCoord);
@@ -184,7 +186,7 @@ const Mapbox = () => {
     `;
 
     new mapboxgl.Popup({ offset: 25, closeOnClick: false })
-      .setLngLat([place.coordinates.longitude, place.coordinates.latitude])
+      .setLngLat([place.coordinates.lng, place.coordinates.lat])
       .setDOMContent(popupNode)
       .addTo(mapRef.current);
   };
