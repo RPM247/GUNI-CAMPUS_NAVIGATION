@@ -25,6 +25,7 @@ const Mapbox = () => {
   const [visitedPlaces, setVisitedPlaces] = useState([]);
   const [routeCoords, setRouteCoords] = useState([]);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [activePlace, setActivePlace] = useState(null);
   const lastUpdatedRef = useRef(0);
   const lastLocationRef = useRef(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
@@ -46,6 +47,7 @@ const Mapbox = () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/places/all`);
         setPlaces(res.data);
+        console.log("Fetched places:", res.data);
       } catch (err) {
         console.error("Failed to fetch places", err);
       }
@@ -111,7 +113,7 @@ const Mapbox = () => {
 
         if (places.length > 0 && routeCoords.length > 0) {
           const newNearbyPlaces = [];
-
+          
           places.forEach((place) => {
             const placeCoord = {
               lat: place.coordinates.lat,
@@ -131,7 +133,6 @@ const Mapbox = () => {
           setNearbyPlaces(newNearbyPlaces);
         }
 
-        // Handle user proximity to places
         let nearestPlace = null;
         let nearestDistance = Infinity;
 
@@ -145,17 +146,15 @@ const Mapbox = () => {
 
         if (nearestPlace) {
           if (!visitedPlaces.includes(nearestPlace._id)) {
-            document.querySelectorAll(".mapboxgl-popup").forEach(popup => popup.remove());
-            showPlacePopup(nearestPlace);
+            setActivePlace(nearestPlace);
             setVisitedPlaces([nearestPlace._id]);
           }
         } else {
           if (visitedPlaces.length > 0) {
-            document.querySelectorAll(".mapboxgl-popup").forEach(popup => popup.remove());
+            setActivePlace(null);
             setVisitedPlaces([]);
           }
         }
-
       },
       (err) => setError("Failed to get location."),
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -212,20 +211,6 @@ const Mapbox = () => {
     return el;
   };
 
-  const showPlacePopup = (place) => {
-    const popupNode = document.createElement("div");
-    popupNode.innerHTML = `  
-      <div style="width: 200px">
-        <img src="${place.imageUrl}" alt="${place.name}" style="width: 100%; height: auto; border-radius: 8px;" />
-        <h4 style="margin-top: 8px;">${place.name}</h4>
-      </div>
-    `;
-    new mapboxgl.Popup({ offset: 25, closeOnClick: false })
-      .setLngLat([place.coordinates.lng, place.coordinates.lat])
-      .setDOMContent(popupNode)
-      .addTo(mapRef.current);
-  };
-
   const haversineDistance = (loc1, loc2) => {
     const toRad = (x) => (x * Math.PI) / 180;
     const R = 6371000;
@@ -258,6 +243,23 @@ const Mapbox = () => {
       )}
 
       <div ref={mapContainer} className="h-full w-full cursor-default select-none" />
+
+      {activePlace && (
+        <div className="absolute bottom-0 left-0 right-0 z-20 bg-white shadow-xl rounded-t-2xl p-4 flex items-center space-x-4 max-h-[160px]">
+          <img
+            src={activePlace.imageUrl || "/placeholder.png"}
+            alt={activePlace.name}
+            className="w-24 h-24 object-cover rounded-xl border"
+            onError={(e) => (e.target.src = "/placeholder.png")}
+          />
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-gray-800">{activePlace.name}</h3>
+            <p className="text-sm text-gray-600 line-clamp-2">
+              {activePlace.description || "No description available."}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
