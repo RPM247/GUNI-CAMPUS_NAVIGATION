@@ -6,24 +6,28 @@ import axios from "axios";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const ZOOM_LEVEL = 18;
-const UPDATE_INTERVAL = 5000; // Update every 5 seconds
-const MIN_DISTANCE_CHANGE = 10; // Minimum distance change to trigger route update
+const UPDATE_INTERVAL = 5000;
+const MIN_DISTANCE_CHANGE = 5;
+const PLACE_RADIUS_FROM_ROUTE = 50; // in meters
+const USER_RADIUS_FOR_POPUP = 30; // in meters
 
 const Mapbox = () => {
   const location = useLocation();
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const userMarker = useRef(null);
-  const destinationMarker = useRef(null);
 
   const [userLocation, setUserLocation] = useState(null);
   const [destination, setDestination] = useState(location.state?.destination || null);
   const [distance, setDistance] = useState("N/A");
   const [error, setError] = useState("");
-  const [places, setPlaces] = useState([]); // This holds all the places
-  const [visitedPlaces, setVisitedPlaces] = useState([]); // This tracks visited places
+  const [places, setPlaces] = useState([]);
+  const [visitedPlaces, setVisitedPlaces] = useState([]);
+  const [routeCoords, setRouteCoords] = useState([]);
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
   const lastUpdatedRef = useRef(0);
   const lastLocationRef = useRef(null);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -37,13 +41,11 @@ const Mapbox = () => {
     });
   }, []);
 
-  // Fetch places from /api/places/all
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/places/all`); // Updated endpoint
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/places/all`);
         setPlaces(res.data);
-        console.log("Fetched places:", res.data);
       } catch (err) {
         console.error("Failed to fetch places", err);
       }
@@ -57,6 +59,7 @@ const Mapbox = () => {
       style: "mapbox://styles/mapbox/outdoors-v12",
       center: [72.458111, 23.530215],
       zoom: ZOOM_LEVEL,
+      interactive: true,
     });
 
     mapRef.current = map;
@@ -77,8 +80,9 @@ const Mapbox = () => {
         const pos = { lat: coords.latitude, lng: coords.longitude };
         setUserLocation(pos);
 
-        if (mapRef.current) {
+        if (mapRef.current && isFirstLoad) {
           mapRef.current.flyTo({ center: [pos.lng, pos.lat], zoom: ZOOM_LEVEL });
+          setIsFirstLoad(false);
         }
 
         if (!userMarker.current) {
@@ -105,29 +109,60 @@ const Mapbox = () => {
           }
         }
 
-        if (places.length > 0) {
+        if (places.length > 0 && routeCoords.length > 0) {
+          const newNearbyPlaces = [];
+
           places.forEach((place) => {
-            console.log("Raw place data:", place);
             const placeCoord = {
               lat: place.coordinates.lat,
               lng: place.coordinates.lng,
             };
 
-            const distToPlace = haversineDistance(pos, placeCoord);
-            console.log(`Distance to ${place.name}: ${distToPlace.toFixed(2)}m`);
-            if (distToPlace < 100 && !visitedPlaces.includes(place._id)) {
-              setVisitedPlaces((prev) => [...prev, place._id]);
-              showPlacePopup(place);
+            const nearRoute = routeCoords.some((coord) => {
+              const routePoint = { lat: coord[1], lng: coord[0] };
+              return haversineDistance(placeCoord, routePoint) <= PLACE_RADIUS_FROM_ROUTE;
+            });
+
+            if (nearRoute) {
+              newNearbyPlaces.push(place);
             }
           });
+
+          setNearbyPlaces(newNearbyPlaces);
         }
+
+        // Handle user proximity to places
+        let nearestPlace = null;
+        let nearestDistance = Infinity;
+
+        nearbyPlaces.forEach((place) => {
+          const distToPlace = haversineDistance(pos, place.coordinates);
+          if (distToPlace <= USER_RADIUS_FOR_POPUP && distToPlace < nearestDistance) {
+            nearestPlace = place;
+            nearestDistance = distToPlace;
+          }
+        });
+
+        if (nearestPlace) {
+          if (!visitedPlaces.includes(nearestPlace._id)) {
+            document.querySelectorAll(".mapboxgl-popup").forEach(popup => popup.remove());
+            showPlacePopup(nearestPlace);
+            setVisitedPlaces([nearestPlace._id]);
+          }
+        } else {
+          if (visitedPlaces.length > 0) {
+            document.querySelectorAll(".mapboxgl-popup").forEach(popup => popup.remove());
+            setVisitedPlaces([]);
+          }
+        }
+
       },
       (err) => setError("Failed to get location."),
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [destination, places]);
+  }, [destination, places, routeCoords, nearbyPlaces, visitedPlaces, isFirstLoad]);
 
   const drawRoute = async (from, to) => {
     const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${from.lng},${from.lat};${to.lng},${to.lat}?geometries=geojson&overview=full&continue_straight=false&access_token=${mapboxgl.accessToken}`;
@@ -140,7 +175,8 @@ const Mapbox = () => {
         return;
       }
 
-      const routeCoords = data.geometry.coordinates;
+      const coords = data.geometry.coordinates;
+      setRouteCoords(coords);
 
       if (mapRef.current.getSource("route")) {
         mapRef.current.removeLayer("route");
@@ -151,7 +187,7 @@ const Mapbox = () => {
         type: "geojson",
         data: {
           type: "Feature",
-          geometry: { type: "LineString", coordinates: routeCoords },
+          geometry: { type: "LineString", coordinates: coords },
         },
       });
 
@@ -178,13 +214,12 @@ const Mapbox = () => {
 
   const showPlacePopup = (place) => {
     const popupNode = document.createElement("div");
-    popupNode.innerHTML = `
+    popupNode.innerHTML = `  
       <div style="width: 200px">
         <img src="${place.imageUrl}" alt="${place.name}" style="width: 100%; height: auto; border-radius: 8px;" />
         <h4 style="margin-top: 8px;">${place.name}</h4>
       </div>
     `;
-
     new mapboxgl.Popup({ offset: 25, closeOnClick: false })
       .setLngLat([place.coordinates.lng, place.coordinates.lat])
       .setDOMContent(popupNode)
