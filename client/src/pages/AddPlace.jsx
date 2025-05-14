@@ -1,20 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, useMapEvents, Marker } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 
-// Fix default Leaflet icon issue
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 const AddPlace = ({ editData }) => {
   const navigate = useNavigate();
+  const mapContainer = useRef(null);
+  const markerRef = useRef(null);
+  const mapRef = useRef(null);
   const [file, setFile] = useState(null);
 
   const [form, setForm] = useState({
@@ -26,7 +22,6 @@ const AddPlace = ({ editData }) => {
     phone: "",
   });
 
-  // Prepopulate form if editing
   useEffect(() => {
     if (editData) {
       setForm({
@@ -43,21 +38,40 @@ const AddPlace = ({ editData }) => {
     }
   }, [editData]);
 
-  const LocationMarker = () => {
-    useMapEvents({
-      click(e) {
-        const { lat, lng } = e.latlng;
-        setForm({
-          ...form,
-          coordinates: { lat: parseFloat(lat), lng: parseFloat(lng) },
-        });
-      },
+  useEffect(() => {
+    const map = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: "mapbox://styles/mapbox/outdoors-v12",
+      center: [form.coordinates.lng || 72.458, form.coordinates.lat || 23.530],
+      zoom: 15,
     });
 
-    return form.coordinates.lat && form.coordinates.lng ? (
-      <Marker position={[form.coordinates.lat, form.coordinates.lng]} />
-    ) : null;
-  };
+    mapRef.current = map;
+
+    map.addControl(new mapboxgl.NavigationControl());
+
+    map.on("click", (e) => {
+      const { lng, lat } = e.lngLat;
+      setForm((prevForm) => ({
+        ...prevForm,
+        coordinates: { lat: parseFloat(lat), lng: parseFloat(lng) },
+      }));
+
+      if (markerRef.current) {
+        markerRef.current.setLngLat([lng, lat]);
+      } else {
+        markerRef.current = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
+        }
+  });
+
+    if (form.coordinates.lat && form.coordinates.lng) {
+      markerRef.current = new mapboxgl.Marker()
+        .setLngLat([form.coordinates.lng, form.coordinates.lat])
+        .addTo(map);
+    }
+
+    return () => map.remove();
+  }, []);
 
   const handleUpload = async () => {
     if (!file) return form.imageUrl || "";
@@ -92,14 +106,12 @@ const AddPlace = ({ editData }) => {
 
       let res;
       if (editData && editData._id) {
-        // Update existing place
         res = await axios.put(
           `${import.meta.env.VITE_BACKEND_URL}/api/places/${editData._id}`,
           placeData
         );
         console.log("✅ Place updated:", res.data);
       } else {
-        // Add new place
         res = await axios.post(
           `${import.meta.env.VITE_BACKEND_URL}/api/places/add`,
           placeData
@@ -203,20 +215,7 @@ const AddPlace = ({ editData }) => {
 
       <div className="mt-8">
         <h3 className="mb-2 font-bold">Click on Map to Pick Coordinates</h3>
-        <MapContainer
-          center={[
-            form.coordinates.lat || 23.530,
-            form.coordinates.lng || 72.458,
-          ]}
-          zoom={14}
-          style={{ height: "400px", width: "100%" }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <LocationMarker />
-        </MapContainer>
+        <div ref={mapContainer} style={{ height: "400px", width: "100%" }} />
       </div>
     </div>
   );
