@@ -78,7 +78,7 @@ const PlaceList = () => {
             />
             <div className="ml-4 flex-1">
               <p className="font-semibold">{place.name}</p>
-              <p className="text-sm text-gray-500">{place.description}</p>
+              {/* <p className="text-sm text-gray-500">{place.description}</p> */}
             </div>
             {isAdmin && (
               <>

@@ -1,3 +1,4 @@
+// Mapbox.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import mapboxgl from "mapbox-gl";
@@ -5,11 +6,30 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import axios from "axios";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+
 const ZOOM_LEVEL = 18;
 const UPDATE_INTERVAL = 5000;
 const MIN_DISTANCE_CHANGE = 5;
-const PLACE_RADIUS_FROM_ROUTE = 50; // in meters
-const USER_RADIUS_FOR_POPUP = 30; // in meters
+const PLACE_RADIUS_FROM_ROUTE = 50;
+const USER_RADIUS_FOR_POPUP = 30;
+
+const maneuverIcons = {
+  "turn": "↩️",
+  "new name": "🆕",
+  "depart": "🚶",
+  "arrive": "🏁",
+  "merge": "🔀",
+  "on ramp": "🛣️",
+  "off ramp": "⬇️",
+  "fork": "🍴",
+  "end of road": "🔚",
+  "continue": "➡️",
+  "roundabout": "⭕",
+  "rotary": "🔄",
+  "roundabout turn": "↪️",
+  "exit roundabout": "⤴️",
+  "exit rotary": "⤴️"
+};
 
 const Mapbox = () => {
   const location = useLocation();
@@ -24,11 +44,14 @@ const Mapbox = () => {
   const [places, setPlaces] = useState([]);
   const [visitedPlaces, setVisitedPlaces] = useState([]);
   const [routeCoords, setRouteCoords] = useState([]);
+  const [navigationSteps, setNavigationSteps] = useState([]);
+  const [spokenSteps, setSpokenSteps] = useState(new Set());
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
   const [activePlace, setActivePlace] = useState(null);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
   const lastUpdatedRef = useRef(0);
   const lastLocationRef = useRef(null);
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -47,7 +70,6 @@ const Mapbox = () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/places/all`);
         setPlaces(res.data);
-        console.log("Fetched places:", res.data);
       } catch (err) {
         console.error("Failed to fetch places", err);
       }
@@ -72,10 +94,11 @@ const Mapbox = () => {
   }, []);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setError("Geolocation not supported.");
-      return;
-    }
+    const speakInstruction = (text) => {
+      if (!voiceEnabled) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+    };
 
     const watchId = navigator.geolocation.watchPosition(
       ({ coords }) => {
@@ -111,31 +134,32 @@ const Mapbox = () => {
           }
         }
 
+        if (navigationSteps.length > 0) {
+          navigationSteps.forEach((step, index) => {
+            const stepLoc = { lat: step.maneuver.location[1], lng: step.maneuver.location[0] };
+            const dist = haversineDistance(pos, stepLoc);
+            if (dist < 20 && !spokenSteps.has(index)) {
+              speakInstruction(step.maneuver.instruction);
+              setSpokenSteps((prev) => new Set(prev).add(index));
+            }
+          });
+        }
+
         if (places.length > 0 && routeCoords.length > 0) {
           const newNearbyPlaces = [];
-          
           places.forEach((place) => {
-            const placeCoord = {
-              lat: place.coordinates.lat,
-              lng: place.coordinates.lng,
-            };
-
+            const placeCoord = { lat: place.coordinates.lat, lng: place.coordinates.lng };
             const nearRoute = routeCoords.some((coord) => {
               const routePoint = { lat: coord[1], lng: coord[0] };
               return haversineDistance(placeCoord, routePoint) <= PLACE_RADIUS_FROM_ROUTE;
             });
-
-            if (nearRoute) {
-              newNearbyPlaces.push(place);
-            }
+            if (nearRoute) newNearbyPlaces.push(place);
           });
-
           setNearbyPlaces(newNearbyPlaces);
         }
 
         let nearestPlace = null;
         let nearestDistance = Infinity;
-
         nearbyPlaces.forEach((place) => {
           const distToPlace = haversineDistance(pos, place.coordinates);
           if (distToPlace <= USER_RADIUS_FOR_POPUP && distToPlace < nearestDistance) {
@@ -144,16 +168,12 @@ const Mapbox = () => {
           }
         });
 
-        if (nearestPlace) {
-          if (!visitedPlaces.includes(nearestPlace._id)) {
-            setActivePlace(nearestPlace);
-            setVisitedPlaces([nearestPlace._id]);
-          }
-        } else {
-          if (visitedPlaces.length > 0) {
-            setActivePlace(null);
-            setVisitedPlaces([]);
-          }
+        if (nearestPlace && !visitedPlaces.includes(nearestPlace._id)) {
+          setActivePlace(nearestPlace);
+          setVisitedPlaces([nearestPlace._id]);
+        } else if (!nearestPlace && visitedPlaces.length > 0) {
+          setActivePlace(null);
+          setVisitedPlaces([]);
         }
       },
       (err) => setError("Failed to get location."),
@@ -161,21 +181,19 @@ const Mapbox = () => {
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [destination, places, routeCoords, nearbyPlaces, visitedPlaces, isFirstLoad]);
+  }, [destination, places, routeCoords, navigationSteps, nearbyPlaces, visitedPlaces, voiceEnabled, isFirstLoad]);
 
   const drawRoute = async (from, to) => {
-    const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${from.lng},${from.lat};${to.lng},${to.lat}?geometries=geojson&overview=full&continue_straight=false&access_token=${mapboxgl.accessToken}`;
+    const url = `https://api.mapbox.com/directions/v5/mapbox/walking/${from.lng},${from.lat};${to.lng},${to.lat}?geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
     try {
       const res = await axios.get(url);
       const data = res.data.routes[0];
-
-      if (!data) {
-        setError("No route found.");
-        return;
-      }
+      if (!data) return setError("No route found.");
 
       const coords = data.geometry.coordinates;
       setRouteCoords(coords);
+      setNavigationSteps(data.legs[0].steps);
+      setSpokenSteps(new Set());
 
       if (mapRef.current.getSource("route")) {
         mapRef.current.removeLayer("route");
@@ -218,32 +236,52 @@ const Mapbox = () => {
     const dLng = toRad(loc2.lng - loc1.lng);
     const a =
       Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRad(loc1.lat)) *
-        Math.cos(toRad(loc2.lat)) *
-        Math.sin(dLng / 2) ** 2;
+      Math.cos(toRad(loc1.lat)) * Math.cos(toRad(loc2.lat)) * Math.sin(dLng / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
 
+  // Get next unspoken step
+  const nextStepIndex = navigationSteps.findIndex((_, idx) => !spokenSteps.has(idx));
+  const nextStep = nextStepIndex !== -1 ? navigationSteps[nextStepIndex] : null;
+
   return (
     <div className="h-screen w-screen relative overflow-hidden">
+      {/* Next Step Only */}
+      {nextStep && (
+        <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-20 bg-white shadow-lg rounded-xl px-4 py-3 w-[90%] max-w-2xl text-center">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-lg">{maneuverIcons[nextStep.maneuver.type] || "🧭"}</span>
+            <span className="text-sm text-gray-700">{nextStep.maneuver.instruction}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Top Panel */}
       <div className="absolute top-5 left-5 z-10 bg-white rounded-xl shadow-lg p-4 w-80 space-y-3">
         <p className="font-semibold text-gray-800 text-sm">📏 Distance: {distance}</p>
+        <button onClick={() => setVoiceEnabled((v) => !v)} className="text-sm font-medium text-blue-600 hover:underline">
+          {voiceEnabled ? "🔊 Voice Enabled" : "🔇 Voice Disabled"}
+        </button>
       </div>
 
+      {/* Zoom Buttons */}
       <div className="absolute bottom-6 left-6 z-10 bg-white rounded-lg shadow flex flex-col">
         <button onClick={() => mapRef.current?.zoomIn()} className="text-lg p-2 border-b hover:bg-gray-100">+</button>
         <button onClick={() => mapRef.current?.zoomOut()} className="text-lg p-2 hover:bg-gray-100">−</button>
       </div>
 
+      {/* Error Box */}
       {error && (
         <div className="absolute top-6 right-6 z-20 bg-red-100 text-red-700 px-4 py-2 rounded-lg shadow text-sm">
           {error}
         </div>
       )}
 
+      {/* Map Container */}
       <div ref={mapContainer} className="h-full w-full cursor-default select-none" />
 
+      {/* Active Place Info */}
       {activePlace && (
         <div className="absolute bottom-0 left-0 right-0 z-20 bg-white shadow-xl rounded-t-2xl p-4 flex items-center space-x-4 max-h-[160px]">
           <img
