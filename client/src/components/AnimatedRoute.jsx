@@ -1,5 +1,18 @@
 import React, { useEffect, useRef } from "react";
 
+// Custom marker SVGs as React components
+const MapPin = ({ x, y, color }) => (
+  <g transform={`translate(${x}, ${y})`}>
+    <circle cx="0" cy="0" r="10" fill={color} stroke="white" strokeWidth="2" />
+    <path
+      d="M 0 0 L -5 15 L 5 15 Z"
+      fill={color}
+      stroke="white"
+      strokeWidth="1"
+    />
+  </g>
+);
+
 const AnimatedRoute = () => {
   const userRef = useRef(null);
 
@@ -7,17 +20,17 @@ const AnimatedRoute = () => {
     const user = userRef.current;
     const path = document.getElementById("routePath");
 
-    let length = path.getTotalLength();
-    let start = 0;
-    let speed = 2; // pixels per frame
+    const length = path.getTotalLength();
+    let progress = 0;
+    const speed = 2;
 
     const animate = () => {
-      const point = path.getPointAtLength(start);
+      const point = path.getPointAtLength(progress);
       user.setAttribute("cx", point.x);
       user.setAttribute("cy", point.y);
 
-      start += speed;
-      if (start >= length) start = 0;
+      progress += speed;
+      if (progress >= length) progress = 0;
 
       requestAnimationFrame(animate);
     };
@@ -26,25 +39,28 @@ const AnimatedRoute = () => {
   }, []);
 
   return (
-    <svg viewBox="0 0 500 300" className="w-full h-auto bg-white">
-      {/* Route path with smooth curve */}
-      <path
-        id="routePath"
-        d="M 50 250 Q 250 50 450 250"
-        fill="none"
-        stroke="#1e40af"
-        strokeWidth="4"
-      />
+    <div className="flex items-center justify-center h-screen">
+      <svg viewBox="0 0 500 300" className="w-[90%] max-w-md h-auto">
+        {/* Curved path with the start point slightly higher than the end */}
+        <path
+          id="routePath"
+          d="M 50 200 
+             C 125 80, 175 120, 250 200 
+             S 375 280, 450 220"
+          fill="none"
+          stroke="#1e40af"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
 
-      {/* Source point */}
-      <circle cx="50" cy="250" r="10" fill="green" />
+        {/* Start and End Markers */}
+        <MapPin x={50} y={200} color="green" /> {/* Start */}
+        <MapPin x={450} y={220} color="red" />  {/* End */}
 
-      {/* Destination point */}
-      <circle cx="450" cy="250" r="10" fill="red" />
-
-      {/* User marker */}
-      <circle ref={userRef} r="8" fill="blue" />
-    </svg>
+        {/* User animated marker */}
+        <circle ref={userRef} r="8" fill="blue" stroke="white" strokeWidth="2" />
+      </svg>
+    </div>
   );
 };
 
