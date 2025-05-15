@@ -247,23 +247,26 @@ const Mapbox = () => {
 
   return (
     <div className="h-screen w-screen relative overflow-hidden">
-      {/* Next Step Only */}
-      {nextStep && (
-        <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-20 bg-white shadow-lg rounded-xl px-4 py-3 w-[90%] max-w-2xl text-center">
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-lg">{maneuverIcons[nextStep.maneuver.type] || "🧭"}</span>
-            <span className="text-sm text-gray-700">{nextStep.maneuver.instruction}</span>
-          </div>
+      {(nextStep || distance !== "N/A") && (
+        <div className="absolute top-5 left-1/2 transform -translate-x-1/2 z-20 bg-white shadow-lg rounded-xl px-5 py-4 w-[90%] max-w-2xl text-center space-y-2">
+          {nextStep && (
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-lg">{maneuverIcons[nextStep.maneuver.type] || "🧭"}</span>
+              <span className="text-sm text-gray-700">{nextStep.maneuver.instruction}</span>
+            </div>
+        )}
+        <div className="flex items-center justify-center gap-4">
+          <p className="text-sm font-semibold text-gray-800">📏 {distance}</p>
+            <button
+              onClick={() => setVoiceEnabled((v) => !v)}
+              className="text-sm font-medium text-blue-600 hover:underline"
+            >
+              {voiceEnabled ? "🔊 Voice Enabled" : "🔇 Voice Disabled"}
+            </button>
         </div>
-      )}
-
-      {/* Top Panel */}
-      <div className="absolute top-5 left-5 z-10 bg-white rounded-xl shadow-lg p-4 w-80 space-y-3">
-        <p className="font-semibold text-gray-800 text-sm">📏 Distance: {distance}</p>
-        <button onClick={() => setVoiceEnabled((v) => !v)} className="text-sm font-medium text-blue-600 hover:underline">
-          {voiceEnabled ? "🔊 Voice Enabled" : "🔇 Voice Disabled"}
-        </button>
       </div>
+  )}
+
 
       {/* Zoom Buttons */}
       <div className="absolute bottom-6 left-6 z-10 bg-white rounded-lg shadow flex flex-col">
