@@ -46,7 +46,7 @@ const RegisterPage = () => {
   const handleSubmit = async(e)=>{
     e.stopPropagation()
     e.preventDefault()
-    if (data.password.length < 8 || data.password.length > 10 ) {
+    if (data.password.length < 8 || data.password.length > 12 ) {
       toast.error("Password must be at least 8 and Atmost 10 Character Long");
       return;
     }

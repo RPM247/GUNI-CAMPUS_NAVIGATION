@@ -19,11 +19,11 @@ const CheckPasswordPage = () => {
   const location = useLocation()
   const dispatch = useDispatch()
   
-  // useEffect(()=>{
-  //   if(!location?.state?.name){
-  //     navigate('/email')
-  //   }
-  // }, [])
+  useEffect(()=>{
+    if(!location?.state?.name){
+      navigate('/email')
+    }
+  }, [])
 
   const handleOnChange = (e)=>{
     const {name, value} = e.target
@@ -55,18 +55,14 @@ const CheckPasswordPage = () => {
       if (response.data.success) {
         const { token, user } = response.data;
         
-        // Save user details in local storage
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
 
-        // Dispatch token to Redux
         dispatch(setToken(token));
         dispatch(setUser(user));
 
-        // Reset password field
         setData({ password: "" });
 
-        // Redirect based on user role
         if (user.isAdmin) {
           navigate('/admin');
         } else {

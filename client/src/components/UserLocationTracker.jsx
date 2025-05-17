@@ -19,13 +19,13 @@ const UserLocationTracker = () => {
           setError("Unable to retrieve your location.");
         },
         {
-          enableHighAccuracy: true, // Uses GPS for higher accuracy
-          timeout: 10000, // Wait up to 10 seconds for a response
-          maximumAge: 0, // Prevent cached data
+          enableHighAccuracy: true, 
+          timeout: 10000, 
+          maximumAge: 0,
         }
       );
 
-      return () => navigator.geolocation.clearWatch(watchId); // Clean up watcher on unmount
+      return () => navigator.geolocation.clearWatch(watchId);
     } else {
       setError("Geolocation is not supported by your browser.");
     }

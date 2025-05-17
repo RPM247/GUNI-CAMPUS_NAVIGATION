@@ -1,4 +1,3 @@
-// Mapbox.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import mapboxgl from "mapbox-gl";
@@ -267,24 +266,19 @@ const Mapbox = () => {
       </div>
   )}
 
-
-      {/* Zoom Buttons */}
       <div className="absolute bottom-6 left-6 z-10 bg-white rounded-lg shadow flex flex-col">
         <button onClick={() => mapRef.current?.zoomIn()} className="text-lg p-2 border-b hover:bg-gray-100">+</button>
         <button onClick={() => mapRef.current?.zoomOut()} className="text-lg p-2 hover:bg-gray-100">−</button>
       </div>
 
-      {/* Error Box */}
       {error && (
         <div className="absolute top-6 right-6 z-20 bg-red-100 text-red-700 px-4 py-2 rounded-lg shadow text-sm">
           {error}
         </div>
       )}
 
-      {/* Map Container */}
       <div ref={mapContainer} className="h-full w-full cursor-default select-none" />
 
-      {/* Active Place Info */}
       {activePlace && (
         <div className="absolute bottom-0 left-0 right-0 z-20 bg-white shadow-xl rounded-t-2xl p-4 flex items-center space-x-4 max-h-[160px]">
           <img

@@ -8,8 +8,8 @@ const PlaceSchema = new mongoose.Schema({
     lat: { type: Number, required: true },
     lng: { type: Number, required: true },
   },
-  description: { type: String, required: false }, // 🆕 Description of the place
-  phone: { type: String, required: false },       // 🆕 Contact number
+  description: { type: String, required: false }, 
+  phone: { type: String, required: false },      
 });
 
 const Place = mongoose.model("Place", PlaceSchema);

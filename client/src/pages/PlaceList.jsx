@@ -48,7 +48,7 @@ const PlaceList = () => {
     }
   };
 
-  const isAdmin = token && _id; // assume only admin reaches this route
+  const isAdmin = token && _id; 
 
   if (loading) {
     return (

@@ -1,6 +1,6 @@
 const Place = require("../models/Place");
 
-// 📌 GET all places
+//GET all places
 async function getAllPlaces(req, res) {
   try {
     const places = await Place.find();
@@ -10,7 +10,7 @@ async function getAllPlaces(req, res) {
   }
 }
 
-// 📌 GET all places by category
+//GET all places by category
 async function getPlacesByCategory(req, res) {
   try {
     const category = req.params.category.toLowerCase();
@@ -26,7 +26,7 @@ async function getPlacesByCategory(req, res) {
   }
 }
 
-// 📌 POST - Admin adds a new place
+// POST - Admin adds a new place
 async function addPlace(req, res) {
   try {
     const {
@@ -62,7 +62,7 @@ async function addPlace(req, res) {
   }
 }
 
-// 🆕 GET a single place
+// GET a single place
 async function getPlaceById(req, res) {
   try {
     const place = await Place.findById(req.params.id);
@@ -73,7 +73,7 @@ async function getPlaceById(req, res) {
   }
 }
 
-// 🆕 UPDATE a place
+// UPDATE a place
 async function updatePlace(req, res) {
   try {
     const updatedPlace = await Place.findByIdAndUpdate(
@@ -88,7 +88,7 @@ async function updatePlace(req, res) {
   }
 }
 
-// 🆕 DELETE a place
+// DELETE a place
 async function deletePlace(req, res) {
   try {
     const deleted = await Place.findByIdAndDelete(req.params.id);
@@ -100,7 +100,7 @@ async function deletePlace(req, res) {
 }
 
 module.exports = {
-  getAllPlaces,            // ✅ Added this export
+  getAllPlaces,            
   getPlacesByCategory,
   addPlace,
   getPlaceById,

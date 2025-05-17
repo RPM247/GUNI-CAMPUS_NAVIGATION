@@ -1,6 +1,6 @@
 const express = require('express');
 
-// 📌 User-related Controllers
+// User-related Controllers
 const registerUser = require('../controller/registerUser');
 const checkEmail = require('../controller/checkEmail');
 const checkPassword = require('../controller/checkPassword');
@@ -10,9 +10,9 @@ const updateUserDetails = require('../controller/updateUserDetails');
 const verifyOTP = require('../controller/verifyOTP');
 const { forgotPassword, VerifyOTP, resetPassword } = require('../controller/authController');
 
-// 📌 Place-related Controllers
+//Place-related Controllers
 const {
-    getAllPlaces,               // ✅ Added
+    getAllPlaces,               
     getPlacesByCategory,
     addPlace,
     getPlaceById,
@@ -22,7 +22,7 @@ const {
 
 const router = express.Router();
 
-// 🔐 User Authentication Routes
+// User Authentication Routes
 router.post('/register', registerUser);
 router.post('/email', checkEmail);
 router.post('/password', checkPassword);
@@ -34,7 +34,7 @@ router.post('/forgot-password', forgotPassword);
 router.post('/verify', VerifyOTP);
 router.post('/reset-password', resetPassword);
 
-// 📌 Place Routes (Admin and Public Access)
+// Place Routes (Admin and Public Access)
 router.get('/places/all', getAllPlaces); // ✅ GET all places
 router.get('/places/:id', getPlaceById); // GET place by ID
 router.get('/places/category/:category', getPlacesByCategory); // GET by category

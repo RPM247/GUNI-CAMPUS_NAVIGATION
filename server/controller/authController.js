@@ -1,6 +1,6 @@
 const UserModel = require("../models/UserModel");
 const bcryptjs = require("bcryptjs");
-const sendMail = require("../utils/mailer"); // Mail utility function
+const sendMail = require("../utils/mailer"); 
 const crypto = require("crypto");
 
 // 📌 1️⃣ Generate & Send OTP
@@ -13,8 +13,8 @@ exports.forgotPassword = async (req, res) => {
             return res.status(404).json({ message: "User not found", error: true });
         }
 
-        const otp = crypto.randomInt(100000, 999999).toString(); // Generate 6-digit OTP
-        const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // Expires in 5 minutes
+        const otp = crypto.randomInt(100000, 999999).toString(); 
+        const otpExpires = new Date(Date.now() + 5 * 60 * 1000); 
 
         // Store OTP in database
         user.resetPasswordOtp = otp;
@@ -48,7 +48,7 @@ exports.VerifyOTP = async (req, res) => {
             return res.status(400).json({ message: "Incorrect OTP", error: true });
         }
 
-        // ✅ Mark OTP as verified for password reset
+        // Mark OTP as verified for password reset
         user.isResetPasswordVerified = true;
         await user.save();
 
@@ -58,7 +58,7 @@ exports.VerifyOTP = async (req, res) => {
     }
 }
 
-// 📌 3️⃣ Reset Password
+// Reset Password
 exports.resetPassword = async (req, res) => {
     try {
         const { email, newPassword } = req.body;
@@ -68,7 +68,7 @@ exports.resetPassword = async (req, res) => {
             return res.status(404).json({ message: "User not found", error: true });
         }
 
-        // ✅ Check if OTP was verified before allowing password reset
+        // Check if OTP was verified before allowing password reset
         if (!user.isResetPasswordVerified) {
             return res.status(400).json({ message: "OTP verification required before resetting password", error: true });
         }
